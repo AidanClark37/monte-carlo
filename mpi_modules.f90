@@ -4,24 +4,23 @@ module mpi_modules
 
 
   type input
-     character(len=100)::wf_file
+     real*8            ::wf(2,40)
      integer           ::nwalk
      integer           ::neq
      integer           ::nav
      integer           ::ncorr
      real*8            ::sigma
-
   end type input
 
   type(input)::msg
 
-  character(len=100)::wf_file   !wave function file input
+  real*8::wf(2,40)   !wave function file input
   integer           ::nwalk     !number of walkers
   integer           ::neq       !number of points for thermalization (each walker)
   integer           ::nav       !number of point for averaging
   integer           ::ncorr     !number of point to reduce correlation
   real*8            ::sigma     !length step of the move
-
+ 
 
   !general settings
   integer::nwalks_for_proc
@@ -53,7 +52,7 @@ contains
 
   subroutine end_mpi()
     implicit none
-    
+   
     call mpi_finalize(ierr)
     return
   end subroutine end_mpi
@@ -81,9 +80,9 @@ contains
     integer::i
     
     num_blk=6
-    v_len_blk=[100,1,1,1,1,1]
-    v_head   =[0,100,104,108,112,116]
-    v_el_typ=[MPI_CHARACTER,MPI_INTEGER,MPI_INTEGER,&
+    v_len_blk=[80,1,1,1,1,1]
+    v_head   =[0,80,84,88,92,96]
+    v_el_typ=[MPI_DOUBLE_PRECISION,MPI_INTEGER,MPI_INTEGER,&
          MPI_INTEGER,MPI_INTEGER,MPI_DOUBLE_PRECISION]
 
     call mpi_type_struct(num_blk,v_len_blk,v_head,v_el_typ,new_type,ierr)
@@ -95,20 +94,21 @@ contains
 !    call mpi_scatter(rnd_mpi,1,MPI_DOUBLE_PRECISION,&
 !         rnd0,1,MPI_DOUBLE_PRECISION,0,mpi_world,ierr)
 
-    wf_file =msg%wf_file   
+   ! wf_file =msg%wf_file
+    wf      =msg%wf
     nwalk   =msg%nwalk      
     neq     =msg%neq           
     nav     =msg%nav       
     ncorr   =msg%ncorr     
-    sigma   =msg%sigma    
+    sigma   =msg%sigma
  
     if(proc_rank.eq.1)then
-       write(*,*)wf_file
-       write(*,*)nwalk
-       write(*,*)neq
-       write(*,*)nav
-       write(*,*)ncorr
-       write(*,*)sigma
+       ! write(*,*)wf_file
+       !write(*,*)nwalk
+       !write(*,*)neq
+       !write(*,*)nav
+       !write(*,*)ncorr
+       !write(*,*)sigma
     end if
     
     return

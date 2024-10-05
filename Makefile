@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
-   ./mpi_modules.o ./main.o ./metropolis.o
+   ./mpi_modules.o ./main.o ./metropolis.o ./pre_deut_wave.o ./deut_wave.o ./store.o ./operations.o ./operator_calc.o
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -55,6 +55,8 @@ ifeq ($(COMPILER),GNU)
   CXX= g++
   F90= mpif90 -mcmodel=medium
   OMP_FLAG=-fopenmp
+  LIBS=     -llapack -lblas -lgsl
+
 endif
 
 # Intel compiler options
@@ -79,8 +81,9 @@ ifeq ($(DEBUG),FALSE)
   FFLAGS= -O3 -fallow-argument-mismatch
 endif
 
-LIBANG=-I/global/homes/a/agnech00/HH/lib -L/global/homes/a/agnech00/HH/lib  -lang
+LIBANG=-I/home/aidan/HH/lib -L/home/aidan/HH/lib  -lang -lint -lfun
 
+GSL= -lgsl
 ###########################################################################
 # Instructions to compile and link
 ########################################################################### 
@@ -93,7 +96,7 @@ all:	$(COMMAND_MAIN)
 
 # This is the command to link all of the object files together 
 $(COMMAND_MAIN): $(OBJSMAIN) $(MAKEFILE) 
-	$(F90) $(FFLAGS) $(OMP_FLAG) -o $(COMMAND_MAIN) $(OBJSMAIN) $(LIBANG)
+	$(F90) $(FFLAGS) $(OMP_FLAG) -o $(COMMAND_MAIN) $(OBJSMAIN) $(LIBANG) $(GSL)
 
 .f90.mod:
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG)
