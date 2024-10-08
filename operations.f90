@@ -81,10 +81,10 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     complex*16::spin_cwf(nspin,niso),cc_cwf(nspin,niso)
     real*8,intent(out)::spin_exp
     integer::p,i,j
-    spin_exp=0
+    spin_exp=0.d0
+    cc_cwf=conjg(cwf)
     do p = 1,N
        call spin(cwf,p,b,N,niso,spin_cwf)
-       cc_cwf=conjg(cwf)
        do i = 1,nspin
           do j=1,niso
              spin_exp=spin_exp+cc_cwf(i,j)*spin_cwf(i,j)

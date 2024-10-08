@@ -81,7 +81,7 @@ contains
     
     num_blk=6
     v_len_blk=[80,1,1,1,1,1]
-    v_head   =[0,80,84,88,92,96]
+    v_head   =[0,640,644,648,652,656]
     v_el_typ=[MPI_DOUBLE_PRECISION,MPI_INTEGER,MPI_INTEGER,&
          MPI_INTEGER,MPI_INTEGER,MPI_DOUBLE_PRECISION]
 
@@ -103,12 +103,12 @@ contains
     sigma   =msg%sigma
  
     if(proc_rank.eq.1)then
-       ! write(*,*)wf_file
-       !write(*,*)nwalk
-       !write(*,*)neq
-       !write(*,*)nav
-       !write(*,*)ncorr
-       !write(*,*)sigma
+       write(*,*)wf(1,1)
+       write(*,*)nwalk
+       write(*,*)neq
+       write(*,*)nav
+       write(*,*)ncorr
+       write(*,*)sigma
     end if
     
     return
@@ -134,6 +134,7 @@ contains
      call mpi_reduce(op2,sum_op2,ndim,MPI_DOUBLE_PRECISION,&
           MPI_SUM,0,mpi_world,ierr)
 
+     
      mean  =sum_op/nwalk
      sum_op2=sum_op2/nwalk
      st_dev=sqrt((sum_op2-mean**2)/nwalk)

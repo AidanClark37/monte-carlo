@@ -8,7 +8,7 @@ program monte_carlo
   real*8::norm
   logical::acc
   complex*16::cwf(4,2)
-  integer::i,j,ii,jj,iq
+  integer::i,j,ii,jj,iq,ir
   real*8::rnd
   integer::jz
   integer::nq
@@ -23,7 +23,7 @@ program monte_carlo
   real*8,allocatable::sigma_obs(:)
 
   real*8::wfa(2,40)
-  real*8::obs0
+  real*8::obs0,rr2
   nspin=4
   niso=2
   !call operator_calc()
@@ -57,7 +57,7 @@ program monte_carlo
   !Initialize the wave function here
   call pre_deut_wave()
 
-  write(*,*)proc_rank!quantity you want to check
+!  write(*,*)proc_rank!quantity you want to check
   allocate(rpart_o(3,npart))
   jz= 1;!select the jz (typically jz=tot j
   nq=1
@@ -74,16 +74,17 @@ program monte_carlo
     
   obs_av_w=0.d0
   obs_sg_w=0.d0
+  acc_move=0
   do i=1,nwalks_for_proc
 
      !Thermalization-----------------------------------------
-     rnd=proc_rank*1047.d0+i*356.d0
+     rnd=proc_rank*1047.d0+i*353.d0
      rpart_o=0.d0
      norm=0.d0
 
      do j=1,neq
         call step(rnd,rpart_o,npart,jz,cwf,norm,acc)
-        !write(*,*)j,acc,norm
+       ! write(*,*)proc_rank,j,acc,norm
      end do
      !write(*,*)'here'
      !-----------------------------------------------------
@@ -96,6 +97,7 @@ program monte_carlo
        ! write(*,*)ii,jj,acc,norm
         if(acc)acc_move=acc_move+1
      end do
+!     write(*,*)proc_rank,acc_move
      rcm=0.d0
      !remove center of mass
      do jj=1,npart
@@ -108,15 +110,20 @@ program monte_carlo
 !!!!! Here you have to call your subroutine that compute the observable (obs as output)
      !     stop
      call spin_exp_val(cwf,2,2,2,4,obs(1))
-     !write(*,*)'obs:',obs_av(1)
+     !  if(proc_rank.eq.1)write(*,*)'obs:',obs(1),norm
+     obs(1)=obs(1)/norm
+
+     
      obs_av=obs_av+obs
 !     write(*,*)obs_av(1),rho(1)
      end do
+!     write(*,*)proc_rank,obs_av,obs_av/nav
      obs_av_w=obs_av_w+obs_av/nav
      obs_sg_w=obs_sg_w+(obs_av/nav)**2
      ! write(*,*)1.d0*acc_move(i)/nav/ncorr/i
   end do
 
+!  write(*,*)proc_rank,obs_av_w
 !  call spin_exp_val(cwf,3,2,2,4,obs0)
 !  write(*,*) obs0
   

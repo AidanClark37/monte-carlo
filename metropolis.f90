@@ -1,16 +1,18 @@
-subroutine step(rnd,rpart_o,npart,jz,norm0,acc)
+subroutine step(rnd,rpart_o,npart,jz,cwf,norm0,acc)
   use mpi_modules
 
   implicit none
 
+  integer            ,parameter::niso=2,nspin=4
   real*8             ,intent(inout)::rnd
   real*8             ,intent(inout)::norm0
-  real*8::sig
   integer            ,intent(in)::npart
   integer            ,intent(in)::jz
-  integer            ,parameter::niso=2,nspin=4
   real*8             ,intent(inout)::rpart_o(3,npart)
-  complex*16::cwf(2**npart,2),warray(4,2)
+  complex*16         ,intent(out)::cwf(2**npart,2)
+  real*8::sig
+  complex*16::warray(4,2)
+  complex*16::cwf0(2**npart,2)
   real*8::ysol(2,40)
   logical,intent(out)::acc
   
@@ -18,6 +20,7 @@ subroutine step(rnd,rpart_o,npart,jz,norm0,acc)
   real*8::random(3*npart+2)
   real*8::norm
   integer::k,j,i
+
   sig=msg%sigma
   ysol=msg%wf
   call rndnb(3*npart+2 , rnd , random )!call the random number
@@ -30,22 +33,16 @@ subroutine step(rnd,rpart_o,npart,jz,norm0,acc)
 !     write(*,*)k,rr(1,k),rr(2,k),rr(3,k)
   end do
   
-  call deut_wave(rr,cwf,ysol)
+  call deut_wave(rr,cwf0,ysol)
   !write(*,*)'here'
 !!!Here you have to insert the subroutine that compute
   !the wave function (output cwf)
   !write(*,*) 'got to wave function calc'
-  do j=1,4
-        do k=1,2
- !          write(*,*)'cwf:',cwf(j,k)
-        enddo
-     enddo  
-     
   !computation of |psi|^2
   norm=0.d0
   do k=1,nspin
      do j=1,niso
-        norm=norm+conjg(cwf(k,j))*cwf(k,j)
+        norm=norm+conjg(cwf0(k,j))*cwf0(k,j)
      end do
   end do
 
@@ -54,6 +51,7 @@ subroutine step(rnd,rpart_o,npart,jz,norm0,acc)
   if(norm.gt.norm0*random(3*npart+2))then
      norm0=norm
      rpart_o=rr
+     cwf=cwf0
      acc=.true.
   end if
 
