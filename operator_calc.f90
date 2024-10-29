@@ -1,64 +1,90 @@
-subroutine operator_calc()
-  use pre_deut
-  integer::a,p,state_sign,iarray(2)
-
-  real*8::rr(3,2),ysol(2,40),obs
-  complex*16::wfa(4,2),tau_wfa(4,2)
-  iarray(1)=2
-  iarray(2)=3
-  call pre_deut_wave()
-  do i = 1,80
-!     write(*,*) (i-1)/40+1,mod(i,41)+i/41
-     read(5,*)ysol((i-1)/40+1,mod(i,41)+i/41)
-  enddo
- ! do i = 1,40
- !    write(*,*)ysol(1,i)
- ! enddo
+module operator_calc
+  implicit none
+  complex*16::operator_array(4,2,3,3,3,3,3,3,3,3)
+contains
+  subroutine start_operator(iarray,wf_in,N,niso)
+    integer,intent(in)::n,niso,iarray(niso)
+    integer::,tp1,tp2,sp1,sp2,ta1,ta2,sa1,sa2,nspin
+    complex*16,intent(in)::wf_in
+    complex*16,allocatable::wf1(:,:),wf2(:,:),wf3(:,:),wf4(:,:)
+    nspin=2**N
+    allocate(wf1(nspin,niso))
+    allocate(wf2(nspin,niso))
+    allocate(wf3(nspin,niso))
+    allocate(wf4(nspin,niso))
+    operator_array(:,:,1,1,1,1,1,1,1,1)=wf_in(:,:)
+    do tp1 = 1,N
+       do ta1= 1,3
+          call isospin(iarray,wf_in,tp1,ta1,N,niso,wf1)
+          operator_array(:,:,tp1+1,ta1,1,1,1,1,1,1)=wf1(:,:)
+          do tp2=2,N+1
+             do ta2=1,N
+                call isospin(iarray,wf1,tp2,ta2,N,niso,wf2)
+                operator_array(:,:,tp1+1,ta1,tp2+1,ta2,1,1,1,1)=wf2(:,:)
+                do sp1=1,N
+                   do sa1=1,3
+                      call spin(wf2,sp1,sa1,N,niso,wf3)
+                      operator_array(:,:,tp1+1,ta1,tp2+1,ta2,sp1+1,sa1,1,1)=wf3(:,:)
+                      do sp2=1,N
+                         do sa2=1,3
+                            call spin(wf3,sp2,sa2,N,niso,wf4)
+                            operator_array(:,:,tp1+1,ta1,tp2+1,ta2,sp1+1,sa1,sp2+1,sa2)=wf4(:,:)
+                         enddo
+                      enddo
+                   enddo
+                enddo
+             enddo
+          enddo
+          do sp1=1,N
+             do sa1=1,3
+                call spin(wf1,sp1,sa1,N,niso,wf2)
+                operator_array(:,:,tp1+1,ta1,1,1,sp1+1,sa1,1,1)=wf2(:,:)
+                do sp2=1,N
+                   do  sa2=1,3
+                      call spin(wf2,sp2,sa2,N,niso,wf3)
+                      operator_array(:,:,tp1+1,ta1,1,1,sp1+1,sa1,sp2+1,sa2)=wf3(:,:)
+                   enddo
+                enddo
+             enddo
+          enddo
+       enddo
+    enddo
+    do sp1=1,N
+       do sa1= 1,3
+          call spin(wf_in,sp1,sa1,N,niso,wf1)
+          operator_array(:,:,1,1,1,1,sp1+1,sa1,1,1)=wf1(:,:)
+          do sp1=1,N
+             do sa1=1,3
+                call spin(wf1,sp2,sa2,N,niso,wf1)
+                operator_array(:,:,1,1,1,1,sp1+1,sa1,sp2+1,sa2)=wf2(:,:)
+             enddo
+          enddo
+       enddo
+    enddo
+    
+  end subroutine start_operator
   
-     
-  rr(1,1)=0.3
-  rr(1,2)=-0.3
-  rr(2,1)=-0.2
-  rr(2,2)=0.2
-  rr(3,1)=1.04
-  rr(3,2)=0.5
-  call deut_wave(rr,wfa,ysol)
- ! write(*,*)wfa(1,1)
- a=1
- p=1
- write(*,*)'here'
-!  do p = 1,2
- !    do a = 1,3
-        !call tau_exp_val(iarray,cwf,b,N,niso,nspin,tau_exp)
-        !write(*,*) obs
-
-        write(*,*)'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-        write(*,*)"wavefunction:"
-        write(*,*) ' '
-        do i = 1,4
-           write(*,*) wfa(i,1),wfa(i,2)
-           !if (a==1) then
-
-              !write(*,*) 'particle',p,'index',i
-              !write(*,*)'here'
-              !write(*,*)'spin:',state_sign(p,i)
-            !  endif
-        enddo
-        call isospin(iarray,wfa,p,a,4,2,tau_wfa)
-        write(*,*)'--------------------------------------'
-        write(*,*) ' '
-        write(*,*)"spin acted wavefunction"
-        !write(*,*)"p=",p,"a=",a
-        
-        do i = 1,4
-           write(*,*) tau_wfa(i,1),tau_wfa(i,2)
-           !write(*,*)'here'
-        enddo
-!        write(*,*)'no here'
-!     enddo
-!     write(*,*)'actually here'
-!  enddo
+  !spin(wf,p,b,N,niso,sigma_wf)
+!isospin(iarray,wf,p,b,N,niso,tau_wf)
   
+  subroutine operator_call(t,s,N,niso,wf_out)
+    integer,intent(in)::t(2,2),s(2,2)
+    integer::nspin,i,j
+    complex*16,intent(out)::wf_out(nspin,niso)
+    nspin=2**N
+    do i= 1, nspin
+       do j = 1, niso
+          if(tn==0) then
+             if(sn==1) then
+                wf_out(i,j)=operator_array(i,j,t(1,1)+1,t(1,2)+1,t(2,1)+1,t(2,2)+1,s(1,1)+1,s(1,2)+1,s(2,1)+1,s(2,2)+1)               
+       enddo
+    enddo
+    
+end module operator_calc
 
-end subroutine operator_calc
+
+
+
+
+
 

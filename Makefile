@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
-   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./deut_wave.o  ./operations.o  ./main.o
+   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./deut_wave.o  ./operations.o  ./main.o ./operator_test.o
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -81,7 +81,7 @@ ifeq ($(DEBUG),FALSE)
   FFLAGS= -O3 -fallow-argument-mismatch
 endif
 
-LIBANG=-I/home/agnech/HH/lib -L/home/agnech/HH/lib  -lang -lint -lfun
+LIBANG=-I/home/aidan/HH/lib -L/home/aidan/HH/lib  -lang -lint -lfun
 
 GSL= -lgsl
 ###########################################################################

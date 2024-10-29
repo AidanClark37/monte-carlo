@@ -10,10 +10,10 @@ program monte_carlo
   complex*16::cwf(4,2)
   integer::i,j,ii,jj,iq,ir
   real*8::rnd
-  integer::jz
+  integer::jz,n
   integer::nq
   integer::nspin,niso
-  integer::accp,acc_move
+  integer::accp,acc_move,iarray(2)
   real*8::r,rr(3),rcm(3)
   real*8,allocatable::obs(:)
   real*8,allocatable::obs_av(:)
@@ -24,9 +24,13 @@ program monte_carlo
 
   real*8::wfa(2,40)
   real*8::obs0,rr2
+  write(*,*)'test'
   nspin=4
   niso=2
-  !call operator_calc()
+  iarray(1)=2
+  iarray(2)=3
+  write(*,*)iarray
+ ! call operator_calc()
   !stop
   call start_mpi()
   if(proc_rank.eq.0)then
@@ -40,6 +44,8 @@ program monte_carlo
      read(5,*)msg%nav
      read(5,*)msg%ncorr
      read(5,*)msg%sigma
+!     read(5,*)msg%iarray(1)
+!     read(5,*)msg%iarray(2)
   end if
 !  do i=1,2
  !    do j=1,40
@@ -60,7 +66,7 @@ program monte_carlo
 !  write(*,*)proc_rank!quantity you want to check
   allocate(rpart_o(3,npart))
   jz= 1;!select the jz (typically jz=tot j
-  nq=1
+  nq=2
 
   !initialization of the observables vectors
   allocate(obs(nq)) !<-selcect nq based on what you need
@@ -78,7 +84,8 @@ program monte_carlo
   do i=1,nwalks_for_proc
 
      !Thermalization-----------------------------------------
-     rnd=proc_rank*1047.d0+i*353.d0
+     !  rnd=proc_rank*1047.d0+i*353.d0
+     rnd=1047.d0+i*353.d0
      rpart_o=0.d0
      norm=0.d0
 
@@ -109,18 +116,30 @@ program monte_carlo
      !Here remove the center of mass of the particle 
 !!!!! Here you have to call your subroutine that compute the observable (obs as output)
      !     stop
-     call spin_exp_val(cwf,2,2,2,4,obs(1))
-     !  if(proc_rank.eq.1)write(*,*)'obs:',obs(1),norm
-     obs(1)=obs(1)/norm
-
+     !call spin_exp_val(cwf,3,2,2,4,obs(1))
+     !call tau_exp_val(iarray,cwf,3,2,2,4,obs(1))
+     call rho_NNg(iarray,cwf,2,2,1,obs(1))
+     call spin_exp_val(cwf,3,2,2,4,obs(2))
+     ! write(*,*)'here1'
+     !call tau_exp_val(iarray,cwf,3,2,2,4,obs(1))
+     
+     !write(*,*)'here2'
+     !write(*,*)obs(1)
+     !,obs(2)!  if(proc_rank.eq.1)write(*,*)'obs:',obs(1),norm
+     !obs(1)=obs(1)/norm
+     obs=obs/norm
+     !write(*,*)obs(1)
+     
      
      obs_av=obs_av+obs
+    
 !     write(*,*)obs_av(1),rho(1)
      end do
 !     write(*,*)proc_rank,obs_av,obs_av/nav
      obs_av_w=obs_av_w+obs_av/nav
      obs_sg_w=obs_sg_w+(obs_av/nav)**2
      ! write(*,*)1.d0*acc_move(i)/nav/ncorr/i
+     !stop
   end do
 
 !  write(*,*)proc_rank,obs_av_w
