@@ -109,7 +109,7 @@ program monte_carlo
      !Here remove the center of mass of the particle 
 !!!!! Here you have to call your subroutine that compute the observable (obs as output)
      !     stop
-     call spin_exp_val(cwf,2,2,2,4,obs(1))
+     call spin_exp_val(cwf,3,2,2,4,obs(1))
      !  if(proc_rank.eq.1)write(*,*)'obs:',obs(1),norm
      obs(1)=obs(1)/norm
 

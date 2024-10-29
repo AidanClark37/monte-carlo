@@ -88,7 +88,9 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
        do i = 1,nspin
           do j=1,niso
              spin_exp=spin_exp+cc_cwf(i,j)*spin_cwf(i,j)
+ !            write(*,*)p,i,j,cwf(i,j),spin_cwf(i,j)
           enddo
        enddo
     enddo
+!    stop
   end subroutine spin_exp_val
