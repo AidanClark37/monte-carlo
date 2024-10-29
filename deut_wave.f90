@@ -12,12 +12,12 @@ subroutine deut_wave(rr,cwf,ysol)
   !write(*,*)'starting  deut wave'
   !write(*,*)'here'
   !write(*,*)'wf1:',msg%wf(2,40)
-  do i = 1,2
-     do j = 1,40
-        !write(*,*)'wf:',msg%wf(i,j)
+!  do i = 1,2
+!     do j = 1,40
+!        write(*,*)'wf:',ysol(i,j)
         !ysol(i,j)=msg%wf(i,j)
-     enddo
-     enddo
+!     enddo
+ !    enddo
   !write(*,*)'here'
   !write(*,*)wf
   !gamma=deut_par%gamma 
@@ -77,6 +77,7 @@ subroutine deut_wave(rr,cwf,ysol)
   do i = 1,4
      do j=1,2
         cwf(i,j)=ysum(i,j,1)+ysum(i,j,2)
+        !write(*,*)cwf(i,j)
      enddo
   enddo
   
