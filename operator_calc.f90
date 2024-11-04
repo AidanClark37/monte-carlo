@@ -1,90 +1,84 @@
 module operator_calc
   implicit none
-  complex*16::operator_array(4,2,3,3,3,3,3,3,3,3)
+  complex*16::s_wf(4,2,2,3),ss_wf(4,2,3,3),t_wf(4,2,2),tt_wf(4,2,3,3),st_wf(4,2,2,3,2),stt(4,2,2,3,3,3),sst_wf(4,2,3,3,2),sstt_wf(4,2,3,3,3,3)
 contains
-  subroutine start_operator(iarray,wf_in,N,niso)
+  subroutine call_operators(iarray,wf_in,N,niso)
     integer,intent(in)::n,niso,iarray(niso)
     integer::,tp1,tp2,sp1,sp2,ta1,ta2,sa1,sa2,nspin
-    complex*16,intent(in)::wf_in
+    complex*16,intent(in)::wf_in(2**N,niso)
     complex*16,allocatable::wf1(:,:),wf2(:,:),wf3(:,:),wf4(:,:)
     nspin=2**N
-    allocate(wf1(nspin,niso))
-    allocate(wf2(nspin,niso))
-    allocate(wf3(nspin,niso))
-    allocate(wf4(nspin,niso))
-    operator_array(:,:,1,1,1,1,1,1,1,1)=wf_in(:,:)
-    do tp1 = 1,N
-       do ta1= 1,3
-          call isospin(iarray,wf_in,tp1,ta1,N,niso,wf1)
-          operator_array(:,:,tp1+1,ta1,1,1,1,1,1,1)=wf1(:,:)
-          do tp2=2,N+1
-             do ta2=1,N
-                call isospin(iarray,wf1,tp2,ta2,N,niso,wf2)
-                operator_array(:,:,tp1+1,ta1,tp2+1,ta2,1,1,1,1)=wf2(:,:)
-                do sp1=1,N
-                   do sa1=1,3
-                      call spin(wf2,sp1,sa1,N,niso,wf3)
-                      operator_array(:,:,tp1+1,ta1,tp2+1,ta2,sp1+1,sa1,1,1)=wf3(:,:)
-                      do sp2=1,N
-                         do sa2=1,3
-                            call spin(wf3,sp2,sa2,N,niso,wf4)
-                            operator_array(:,:,tp1+1,ta1,tp2+1,ta2,sp1+1,sa1,sp2+1,sa2)=wf4(:,:)
-                         enddo
-                      enddo
-                   enddo
-                enddo
-             enddo
+    
+    do p1 = 1, N
+       call isospin(iarray,wf_in,p1,3,N,niso,wf1)
+       t_wf(:,:,p1)=wf1(:,:)
+       do a1= 1,3
+          call spin(wf_in,p1,a1,N,niso,wf2)
+          s_wf(:,:,p1,a1)=wf2(:,:)
+          do p2 =1, N
+             call isospin(iarray,wf2,p2,3,N,niso,wf3)
+             st_wf(:,:,p1,a1,p2)=wf3(:,:)
           enddo
-          do sp1=1,N
-             do sa1=1,3
-                call spin(wf1,sp1,sa1,N,niso,wf2)
-                operator_array(:,:,tp1+1,ta1,1,1,sp1+1,sa1,1,1)=wf2(:,:)
-                do sp2=1,N
-                   do  sa2=1,3
-                      call spin(wf2,sp2,sa2,N,niso,wf3)
-                      operator_array(:,:,tp1+1,ta1,1,1,sp1+1,sa1,sp2+1,sa2)=wf3(:,:)
-                   enddo
-                enddo
-             enddo
-          enddo
-       enddo
+          
+             do a2=1,3
+       call isospin(iarray,wf2,1,a2,N,niso,wf3)
+       call isospin(iarray,wf3,2,a2,N,niso,wf4)
+       stt_wf(:,:,p1,a1,a2,a2)=wf4(:,:)
     enddo
-    do sp1=1,N
-       do sa1= 1,3
-          call spin(wf_in,sp1,sa1,N,niso,wf1)
-          operator_array(:,:,1,1,1,1,sp1+1,sa1,1,1)=wf1(:,:)
-          do sp1=1,N
-             do sa1=1,3
-                call spin(wf1,sp2,sa2,N,niso,wf1)
-                operator_array(:,:,1,1,1,1,sp1+1,sa1,sp2+1,sa2)=wf2(:,:)
-             enddo
+    call isospin(iarray,wf2,1,1,N,niso,wf3)
+    call isospin(iarray,wf3,2,2,N,niso,wf4)
+    stt_wf(:,:,p1,a1,1,2)=wf4(:,:)
+    all isospin(iarray,wf2,1,2,N,niso,wf3)
+    call isospin(iarray,wf3,2,1,N,niso,wf4)
+    stt_wf(:,:,p1,a1,2,1)=wf4(:,:)
+    
+    
+ enddo
+enddo
+    do a1=1,3
+       call isospin(iarray,wf_in,1,a1,N,niso,wf1)
+       call isospin(iarray,wf1,2,a1,N,niso,wf2)
+       tt_wf(:,:,a1,a1)=wf2(:,:)
+    enddo
+    call isospin(iarray,wf_in,1,1,N,niso,wf1)
+    call isospin(iarray,wf1,2,2,N,niso,wf2)
+    tt_wf(:,:,1,2)=wf2(:,:)
+    all isospin(iarray,wf_in,1,2,N,niso,wf1)
+    call isospin(iarray,wf1,2,1,N,niso,wf2)
+    tt_wf(:,:,2,1)=wf2(:,:)
+    do a1=1,3
+       do a2=1,3
+          call spin(wf_in,a1,1,N,niso,wf1)
+          call spin(wf1,a2,2,N,niso,wf2)
+          ss_wf(:,:,a1,a2)=wf2(:,:)
+          do p1 = 1,N
+             call isospin(iarray,wf2,p1,3,N,niso,wf3)
+             sst_wf(:,:,a1,a2,p1)=wf3(:,:)
           enddo
+          do a3=1,3
+             call isospin(iarray,wf2,1,a3,N,niso,wf3)
+             call isospin(iarray,wf3,2,a3,N,niso,wf4)
+             sstt_wf(:,:,a1,a2,a3,a3)=wf4(:,:)
+          enddo
+          call isospin(iarray,wf2,1,1,N,niso,wf3)
+          call isospin(iarray,wf3,2,2,N,niso,wf4)
+          sstt_wf(:,:,a1,a2,1,2)=wf4(:,:)
+          call isospin(iarray,wf2,1,2,N,niso,wf3)
+          call isospin(iarray,wf3,2,1,N,niso,wf4)
+          sstt_wf(:,:,a1,a2,2,1)=wf4(:,:)
        enddo
+
     enddo
     
+             
+          
   end subroutine start_operator
-  
-  !spin(wf,p,b,N,niso,sigma_wf)
-!isospin(iarray,wf,p,b,N,niso,tau_wf)
-  
-  subroutine operator_call(t,s,N,niso,wf_out)
-    integer,intent(in)::t(2,2),s(2,2)
-    integer::nspin,i,j
-    complex*16,intent(out)::wf_out(nspin,niso)
-    nspin=2**N
-    do i= 1, nspin
-       do j = 1, niso
-          if(tn==0) then
-             if(sn==1) then
-                wf_out(i,j)=operator_array(i,j,t(1,1)+1,t(1,2)+1,t(2,1)+1,t(2,2)+1,s(1,1)+1,s(1,2)+1,s(2,1)+1,s(2,2)+1)               
-       enddo
-    enddo
-    
-end module operator_calc
+  end module operator_calc
 
 
 
 
 
 
-
+! spin(wf,p,b,N,niso,sigma_wf)
+! isospin(iarray,wf,p,b,N,niso,tau_wf)

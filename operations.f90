@@ -140,7 +140,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     implicit none
     integer,intent(in)::iarray(niso),N,niso
     integer::p,nspin,i,j,pm,state_sign
-    complex*16,intent(in)::wf_in(nspin,niso)
+    complex*16,intent(in)::wf_in(4,niso)
     real*8,intent(out)::exp
     complex*16,allocatable::cc_wf(:,:),tau_wf(:,:),spin_tau_wf(:,:),wf_out(:,:),tau_one_wf(:,:)
     nspin=2**N
@@ -155,11 +155,9 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     do p = 1,N
     call isospin(iarray,wf_in,p,3,2,2,tau_wf)
     !tau_one_wf(:,:)=tau_wf(:,:) + wf_in(:,:)
-    do i=1,4
-       do j=1,2
-          tau_one_wf(i,j) = 0.5d0*(tau_wf(i,j) + wf_in(i,j))
-       end do
-    end do
+          tau_one_wf = 0.5d0*(tau_wf + wf_in)
+    !   end do
+    !end do
     !write(*,*)"particle = ",p
     !do j=1,2
     !   write(*,*)j,state_sign(p,iarray(j))
@@ -174,26 +172,22 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
 !    end if
     
     call spin(tau_one_wf,p,3,2,2,spin_tau_wf)
-    do i =1,4
-       do j = 1,2
-          wf_out(i,j) = wf_out(i,j) + spin_tau_wf(i,j)
-       enddo
-    enddo
+          wf_out = wf_out + spin_tau_wf
     
  enddo
 
- cc_wf(:,:) = dconjg(wf_in(:,:))
+ cc_wf = conjg(wf_in)
  
     do i = 1,nspin
        do j = 1,niso
-          if(proc_rank.eq.1)write(*,*)wf_in(i,j),cc_wf(i,j),wf_out(i,j)
+          !if(proc_rank.eq.1)write(*,*)wf_in(i,j),cc_wf(i,j),wf_out(i,j)
           exp =	exp + cc_wf(i,j)*wf_out(i,j)
-          write(*,*)proc_rank,i,j,exp
+          !write(*,*)proc_rank,i,j,exp
        enddo
        
     enddo
 !    write(*,*) proc_rank,exp
-    stop
+    !stop
 return
 
 end subroutine rho_NNg

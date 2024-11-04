@@ -84,8 +84,8 @@ program monte_carlo
   do i=1,nwalks_for_proc
 
      !Thermalization-----------------------------------------
-     !  rnd=proc_rank*1047.d0+i*353.d0
-     rnd=1047.d0+i*353.d0
+       rnd=proc_rank*1047.d0+i*353.d0
+     !rnd=1047.d0+i*353.d0
      rpart_o=0.d0
      norm=0.d0
 
