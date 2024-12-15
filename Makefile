@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
-   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./deut_wave.o  ./operations.o  ./main.o ./operator_test.o
+   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./operator_calc.o ./deut_wave.o  ./operations.o  ./main.o ./operator_test.o ./radial_functions.o
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -96,7 +96,7 @@ all:	$(COMMAND_MAIN)
 
 # This is the command to link all of the object files together 
 $(COMMAND_MAIN): $(OBJSMAIN) $(MAKEFILE) 
-	$(F90) $(FFLAGS) $(OMP_FLAG) -o $(COMMAND_MAIN) $(OBJSMAIN) $(LIBANG) $(GSL)
+	$(F90) $(FFLAGS) $(OMP_FLAG) -o $(COMMAND_MAIN) $(OBJSMAIN) $(LIBANG) $(GSL) -llapack -lblas
 
 .f90.mod:
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG)

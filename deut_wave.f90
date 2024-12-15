@@ -1,4 +1,4 @@
-subroutine deut_wave(rr,cwf,ysol)
+subroutine deut_wave(rr,cwf,ysol,dr,r)
   use wigner
   use mpi_modules
   use pre_deut

@@ -1,38 +1,41 @@
 program monte_carlo
   use mpi_modules
-  use pre_deut 
+  use pre_deut
+  use operator_calc
   implicit none
 
-  integer,parameter::npart = 2 
+  integer,parameter::npart = 2
   real*8,allocatable::rpart_o(:,:)
-  real*8::norm
+  real*8::norm,f_lambda
   logical::acc
   complex*16::cwf(4,2)
   integer::i,j,ii,jj,iq,ir
   real*8::rnd
   integer::jz,n
-  integer::nq
+  integer::nq,si,sj
   integer::nspin,niso
-  integer::accp,acc_move,iarray(2)
-  real*8::r,rr(3),rcm(3)
+  integer::accp,acc_move
+  real*8::r,rr(3,2),rcm(3),dr(3),q(3)
   real*8,allocatable::obs(:)
   real*8,allocatable::obs_av(:)
   real*8,allocatable::obs_av_w(:)
   real*8,allocatable::obs_sg_w(:)
   real*8,allocatable::mean_obs(:)
   real*8,allocatable::sigma_obs(:)
-
+  
   real*8::wfa(2,40)
   real*8::obs0,rr2
   write(*,*)'test'
   nspin=4
+  q(1)=1
+  q(2)=1
+  q(3)=1
   niso=2
-  iarray(1)=2
-  iarray(2)=3
-  write(*,*)iarray
+
+
+
  ! call operator_calc()
-  !stop
-  call start_mpi()
+   call start_mpi()
   if(proc_rank.eq.0)then
      do i = 1,80
        ! write(*,*)(i-1)/100+1,mod(i,100)
@@ -44,14 +47,17 @@ program monte_carlo
      read(5,*)msg%nav
      read(5,*)msg%ncorr
      read(5,*)msg%sigma
-!     read(5,*)msg%iarray(1)
-!     read(5,*)msg%iarray(2)
+     read(5,*)msg%nla
+     read(5,*)msg%iarray(1)
+     read(5,*)msg%iarray(2)
+     read(5,*)msg%m
+     read(5,*)msg%lambda
   end if
 !  do i=1,2
  !    do j=1,40
   !      write(*,*)'wfa(',i,j,')=', msg%wf(i,j)
    !  enddo
-    ! enddo
+   ! enddo
   !enddo
   !write(*,*)'neq=', msg%neq
   !write(*,*)'nav=', msg%nav
@@ -62,11 +68,13 @@ program monte_carlo
  
   !Initialize the wave function here
   call pre_deut_wave()
+  write(*,*)"f(2)",f_lambda(2.d0,msg%m,msg%lambda,msg%nla)
+  stop
 
 !  write(*,*)proc_rank!quantity you want to check
   allocate(rpart_o(3,npart))
   jz= 1;!select the jz (typically jz=tot j
-  nq=2
+  nq=1
 
   !initialization of the observables vectors
   allocate(obs(nq)) !<-selcect nq based on what you need
@@ -90,8 +98,9 @@ program monte_carlo
      norm=0.d0
 
      do j=1,neq
-        call step(rnd,rpart_o,npart,jz,cwf,norm,acc)
-       ! write(*,*)proc_rank,j,acc,norm
+        call step(rnd,rpart_o,npart,jz,cwf,norm,rr,dr,r,acc)
+        ! write(*,*)proc_rank,j,acc,norm
+        
      end do
      !write(*,*)'here'
      !-----------------------------------------------------
@@ -100,7 +109,7 @@ program monte_carlo
      obs_av=0.d0
      do ii=1,nav
      do jj=1,ncorr
-        call step(rnd,rpart_o,npart,jz,cwf,norm,acc)
+        call step(rnd,rpart_o,npart,jz,cwf,norm,rr,dr,r,acc)
        ! write(*,*)ii,jj,acc,norm
         if(acc)acc_move=acc_move+1
      end do
@@ -118,8 +127,29 @@ program monte_carlo
      !     stop
      !call spin_exp_val(cwf,3,2,2,4,obs(1))
      !call tau_exp_val(iarray,cwf,3,2,2,4,obs(1))
-     call rho_NNg(iarray,cwf,2,2,1,obs(1))
-     call spin_exp_val(cwf,3,2,2,4,obs(2))
+     !stop
+     
+     
+     call all_operators(iarray,cwf,2,2)
+     !write(*,*) st_wf(1,1,1,3,1)
+
+     !call rho_NNg_other(cwf,2,2,1,obs(1))
+     call rho_NNpTRV_NNpgPC_1(rr,dr,r,q,msg%iarray,cwf,2,2,obs(1))
+     
+     
+     
+     
+     
+     
+           !     do si = 1, 4
+!        write(*,*)"wf:",cwf(si,:)
+!     enddo
+!     do si = 1,4
+!        write(*,*)"twf:",tt_wf(si,:,1,2)
+!        enddo
+!     stop
+     !call rho_NNg(iarray,cwf,2,2,1,obs(1))
+     !call spin_exp_val(cwf,3,2,2,4,obs(2))
      ! write(*,*)'here1'
      !call tau_exp_val(iarray,cwf,3,2,2,4,obs(1))
      

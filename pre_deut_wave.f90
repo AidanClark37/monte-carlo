@@ -43,5 +43,5 @@ contains
 
   return
 
-endsubroutine pre_deut_wave
+end subroutine pre_deut_wave
 end module pre_deut

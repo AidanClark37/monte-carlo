@@ -10,6 +10,10 @@ module mpi_modules
      integer           ::nav
      integer           ::ncorr
      real*8            ::sigma
+     integer           ::nla
+     integer           ::iarray(2)
+     real*8            ::m
+     real*8            ::lambda
 
   end type input
 
@@ -21,7 +25,10 @@ module mpi_modules
   integer           ::nav       !number of point for averaging
   integer           ::ncorr     !number of point to reduce correlation
   real*8            ::sigma     !length step of the move
-
+  integer           ::nla
+  integer           ::iarray(2)
+  real*8            ::lambda
+  real*8            ::m
 
   !general settings
   integer::nwalks_for_proc
