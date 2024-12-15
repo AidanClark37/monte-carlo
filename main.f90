@@ -25,12 +25,15 @@ program monte_carlo
   
   real*8::wfa(2,40)
   real*8::obs0,rr2
-  write(*,*)'test'
-  nspin=4
-  q(1)=1
-  q(2)=1
-  q(3)=1
-  niso=2
+  !write(*,*)'test'
+  
+  real*8::b_int,b5,h,bounds(2),f_0
+  integer::ias,ndim
+  real*8,allocatable::a(:)
+  
+  
+
+
 
 
 
@@ -68,7 +71,26 @@ program monte_carlo
  
   !Initialize the wave function here
   call pre_deut_wave()
-  write(*,*)"f(2)",f_lambda(2.d0,msg%m,msg%lambda,msg%nla)
+
+  ndim=1000
+  ias=1
+  bounds(1)=0.d0
+  bounds(2)=2.d0*msg%lambda
+  h=(bounds(2)-bounds(1))/real(ndim)
+  allocate(a(ndim))
+  b_int = 0.d0
+  do i = 1,ndim
+
+
+
+     a(i)=((real(i)*h)**2)*f_0(real(i)*h,2.d0,msg%lambda,msg%m)
+
+
+  enddo
+b_int = b5(1,ndim,0.d0,0.d0,h,0.d0,0.d0,ndim,a,ias)
+  
+  write(*,*)"gaulag f(2)",f_lambda(2.d0,msg%m,msg%lambda,msg%nla)
+  write(*,*)"b5 f(2)",b_int
   stop
 
 !  write(*,*)proc_rank!quantity you want to check
