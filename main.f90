@@ -53,7 +53,7 @@ program monte_carlo
      read(5,*)msg%nla
      read(5,*)msg%iarray(1)
      read(5,*)msg%iarray(2)
-     read(5,*)msg%m
+     read(5,*)msg%mass
      read(5,*)msg%lambda
   end if
 !  do i=1,2
@@ -83,13 +83,13 @@ program monte_carlo
 
 
 
-     a(i)=((real(i)*h)**2)*f_0(real(i)*h,2.d0,msg%lambda,msg%m)
+     a(i)=((real(i)*h)**2)*f_0(real(i)*h,2.d0,msg%lambda,msg%mass)
 
 
   enddo
 b_int = b5(1,ndim,0.d0,0.d0,h,0.d0,0.d0,ndim,a,ias)
   
-  write(*,*)"gaulag f(2)",f_lambda(2.d0,msg%m,msg%lambda,msg%nla)
+  write(*,*)"gaulag f(2)",f_lambda(2.d0,msg%mass,msg%lambda,msg%nla)
   write(*,*)"b5 f(2)",b_int
   stop
 

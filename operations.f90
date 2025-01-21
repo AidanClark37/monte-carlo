@@ -495,3 +495,5 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
        enddo
     enddo
   end subroutine spin_exp_val
+
+

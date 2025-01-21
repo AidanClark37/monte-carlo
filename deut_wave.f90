@@ -5,7 +5,6 @@ subroutine deut_wave(rr,cwf,ysol,dr,r)
   implicit none
   real*8::dr(3),ysol(2,40),rr(3,2)
   real*8,parameter::gamma=4.5
-  integer,parameter::nla=40
   integer::i,j,k,li,ll,M,M0,npart,ri
   real*8::asum(4,2,2),lsum(2),r,plaguer,thetax,phix,x,prod
   complex*16::ysum(4,2,2),ylm,cwf(4,2)
@@ -23,7 +22,7 @@ subroutine deut_wave(rr,cwf,ysol,dr,r)
   !gamma=deut_par%gamma 
   !warray=deut_wave%pre_wave !angular component of wavefunction
   !nla=deut_par%nla    !number of laguerre polynomials used
-  r=0
+  r=0.d0
   do ri = 1,3
      dr(ri)=rr(ri,1)-rr(ri,2)
      !write(*,*)'rr:',rr(ri,1),rr(ri,2)
@@ -85,3 +84,30 @@ subroutine deut_wave(rr,cwf,ysol,dr,r)
   !write(*,*)'got to end of deut wave'
 return
 end subroutine deut_wave
+
+subroutine derivative(rr,ysol,h,dcwf)
+  implicit none
+  real*8,intent(in)::rr(3,2),ysol(2,40),h
+  complex*16,intent(out)::dcwf(4,2,a,p)
+  integer::a,p,i,j
+  real*8::dr(3),r,h_add(3,2),rr_new(3,2)
+  complex*16::cwf_plus(4,2),cwf_minus(4,2)
+  do a = 1,3
+     do p = 1,2
+        h_add=0.d0
+        h_add(a,p)=h
+        rr_new = rr+h
+        call deut_wave(rr_new,cwf_plus,ysol,dr,r)
+        rr_new=rr-h
+        call deut_wave(rr_new,cwf_minus,ysol,dr,r)
+        do i = 1,4
+           do j = 1,2
+              dcwf(i,j,a,p)=(cwf_plus(i,j)-cwf_minus(i,j))/(2*h)
+           enddo
+        enddo
+     enddo
+  enddo
+
+  
+  return
+end subroutine derivative

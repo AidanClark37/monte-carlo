@@ -12,7 +12,7 @@ module mpi_modules
      real*8            ::sigma
      integer           ::nla
      integer           ::iarray(2)
-     real*8            ::m
+     real*8            ::mass
      real*8            ::lambda
 
   end type input
@@ -28,7 +28,7 @@ module mpi_modules
   integer           ::nla
   integer           ::iarray(2)
   real*8            ::lambda
-  real*8            ::m
+  real*8            ::mass
 
   !general settings
   integer::nwalks_for_proc
