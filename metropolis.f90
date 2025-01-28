@@ -1,4 +1,4 @@
-subroutine step(rnd,rpart_o,npart,jz,cwf,norm0,acc)
+subroutine step(rnd,rpart_o,npart,jz,cwf,norm0,rr,dr,r,acc)
   use mpi_modules
 
   implicit none
@@ -13,10 +13,10 @@ subroutine step(rnd,rpart_o,npart,jz,cwf,norm0,acc)
   real*8::sig
   complex*16::warray(4,2)
   complex*16::cwf0(2**npart,2)
-  real*8::ysol(2,40)
+  real*8::ysol(2,40),dr(3),r
   logical,intent(out)::acc
   
-  real*8::rr(3,npart)
+  real*8::rr(3,2)
   real*8::random(3*npart+2)
   real*8::norm
   integer::k,j,i
@@ -33,7 +33,7 @@ subroutine step(rnd,rpart_o,npart,jz,cwf,norm0,acc)
 !     write(*,*)k,rr(1,k),rr(2,k),rr(3,k)
   end do
   
-  call deut_wave(rr,cwf0,ysol)
+  call deut_wave(rr,cwf0,ysol,dr,r)
   !write(*,*)'here'
 !!!Here you have to insert the subroutine that compute
   !the wave function (output cwf)
