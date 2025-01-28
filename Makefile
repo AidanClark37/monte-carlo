@@ -81,7 +81,7 @@ ifeq ($(DEBUG),FALSE)
   FFLAGS= -O3 -fallow-argument-mismatch
 endif
 
-LIBANG=-I/home/aidan/HH/lib -L/home/aidan/HH/lib  -lang -lint -lfun
+LIBANG=-I/home/agnech/HH/lib -L/home/agnech/HH/lib  -lang -lint -lfun
 
 GSL= -lgsl
 ###########################################################################
