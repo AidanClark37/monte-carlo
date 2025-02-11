@@ -27,7 +27,17 @@ end function C_lambda
   return
 end function f_0
 
-  
+real*8 function f_prime_0(k,R,lambda,m)
+  implicit none
+  real*8::k,r,m,sbessel,lambda,C_lambda,h,j1
+  h=0.01
+  j1=sbessel(k*r/197.326+h)-sbessel(k*r/197.326-h)
+  j1=j1/(2*h*197.326)
+  f_prime_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
+  f_prime_0 = C_lambda(k,lambda)*f_prime_0*j1/(k**2+m**2)
+  return
+end function f_prime_0
+
   real*8 function f_lambda(R,m,lambda,nla)
 implicit none
   integer::i,nla
@@ -42,6 +52,21 @@ implicit none
   enddo
   return
 end function f_lambda
+
+real*8 function f_prime_lambda(R,m,lambda,nla)
+implicit none
+  integer::i,nla
+  real*8,allocatable::wei(:),xx(:)
+  real*8::R,m,lambda,f_prime_0
+  allocate(xx(nla))
+  allocate(wei(nla))
+  f_prime_lambda=0.d0
+  call setgaulag(3.d0,nla,wei,xx)
+  do i = 1,nla
+     f_prime_lambda = f_prime_lambda+exp(xx(i))*f_prime_0(xx(i),R,lambda,m)*wei(i)
+  enddo
+  return
+end function f_prime_lambda
 
 real*8 function ff_0(k,R,q,y,lambda,m)
   implicit none

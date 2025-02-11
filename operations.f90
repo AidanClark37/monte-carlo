@@ -226,6 +226,7 @@ return
 end subroutine rho_NNg
 
 subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
+  !eqn(39)
   use operator_calc
     implicit none
     integer::p,nspin,i,j,pm,state_sign
@@ -253,8 +254,10 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   end subroutine rho_NNg_other
 
   subroutine rho_NNpTRV_NNpgPC_1(rr,dr,r,q,iarray,cwf,N,niso,exp)
+    !eqn(53) term proportional involving f prime
     use operator_calc
     implicit none
+    
    
     real*8,intent(in)::rr(3,2)
     complex*16,intent(in)::cwf(2**N,niso)
@@ -309,10 +312,11 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   end subroutine rho_NNpTRV_NNpgPC_1
 
   subroutine rho_NNpTRV_NNpgPC_2(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    
+    !eqn(53) term involving grad(psi)
   end subroutine rho_NNpTRV_NNpgPC_2
 
   subroutine rho_NNpTRV_NNpgHB_0(rr,dr,r,q,iarray,cwf,N,niso,exp)
+    !eqn(55) g_0 term
     use operator_calc
     implicit none
 
@@ -351,6 +355,7 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   end subroutine rho_NNpTRV_NNpgHB_0
 
   subroutine rho_NNpTRV_NNpgHB_1(rr,dr,r,q,iarray,cwf,N,niso,exp)
+    !eqn(55) g_1 term
     use operator_calc
     implicit none
 
@@ -383,6 +388,7 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   end subroutine rho_NNpTRV_NNpgHB_1
 
   subroutine rho_NNpTRV_NNpgHB_2(rr,dr,r,q,iarray,cwf,N,niso,exp)
+    !eqn(55) g_1 term
     use operator_calc
     implicit none
 
@@ -416,6 +422,7 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   end subroutine rho_NNpTRV_NNpgHB_2
   
   subroutine rho_NNpTRV_ppg_PC(rr,dr,r,q,iarray,cwf,N,niso,exp)
+    !eqn(56)
     use operator_calc
     implicit none
 
