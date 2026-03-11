@@ -70,11 +70,14 @@ end subroutine parameter_calc
 subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
                    
   !p - particle number, 1,2, up to the number of particles N
+  !b - coordinate index
+  !N - total number of particles
+  !niso
   implicit none
   integer,intent(in)::p,b,N,niso
   integer::i,j,flip,nspin,state_sign
-  complex*16,intent(in)::wf(4,2)
-  complex*16,intent(out)::sigma_wf(4,2)
+  complex*16,intent(in)::wf(2**N,niso)
+  complex*16,intent(out)::sigma_wf(2**N,niso)
   nspin=2**N
 !  write(*,*)'niso:',niso
   select case(b)

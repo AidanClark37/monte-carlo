@@ -1,97 +1,112 @@
-  real*8 function C_lambda(k,lambda)
+
+
+real*8 function C_lambda(k,lambda)
     implicit none
     real*8::k,lambda
     C_lambda = exp(-(k/lambda)**4)
   return
 end function C_lambda
 
-
-  
-  real*8 function sbessel(x)
-     implicit none
+real*8 function j_0(x)
+  implicit none
   real*8::x
   if( x.eq.0.d0) then
-  sbessel=1
+  j_0=1
   else
-     sbessel=sin(x)/x
+     j_0=sin(x)/x
      endif
   return
+end function j_0
 
-  end function sbessel
-
-  real*8 function f_0(k,R,lambda,m)
+real*8 function j_1(x)
   implicit none
-  real*8::k,r,m,sbessel,lambda,C_lambda
-  f_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
-  f_0 = C_lambda(k,lambda)*f_0*(sbessel(k*r/197.326))/(k**2+m**2)
+  real*8::x
+  if(x.eq.0.d0) then
+     j_1=0
+  else
+     j_1=sin(x)/x-cos(x)/x**2
+  endif
   return
+end function j_1
+
+real*8 function j_2(x)
+  implicit none
+  real*8::x
+  if(x.eq.0.d0) then
+     j_2=0
+  else
+     j_2=(3/x**2-1)*sin(x)/x-3*cos(x)/x**2
+  endif
+  return
+end function j_2
+
+real*8 function f_0(lambda,k,r,m)
+  implicit none
+  real*8::k,r,m,j_0,lambda,C_lambda
+  f_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
+  f_0 = (k**2)*C_lambda(k,lambda)*f_0*(j_0(k*r/197.326))/(k**2+m**2)
+
 end function f_0
 
-real*8 function f_prime_0(k,R,lambda,m)
-  implicit none
-  real*8::k,r,m,sbessel,lambda,C_lambda,h,j1
-  h=0.01
-  j1=sbessel(k*r/197.326+h)-sbessel(k*r/197.326-h)
-  j1=j1/(2*h*197.326)
-  f_prime_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
-  f_prime_0 = C_lambda(k,lambda)*f_prime_0*j1/(k**2+m**2)
-  return
-end function f_prime_0
-
-  real*8 function f_lambda(R,m,lambda,nla)
+real*8 function f_lambda(r,m,lambda,nla)
 implicit none
   integer::i,nla
   real*8,allocatable::wei(:),xx(:)
-  real*8::R,m,lambda,f_0
+  real*8::r,m,lambda,f_0
   allocate(xx(nla))
   allocate(wei(nla))
   f_lambda=0.d0
-  call setgaulag(2.d0,nla,wei,xx)
+  call setgaulag(0.d0,nla,wei,xx)
+  
   do i = 1,nla
-     f_lambda = f_lambda+exp(xx(i))*f_0(xx(i),R,lambda,m)*wei(i)
+     f_lambda = f_lambda+exp(xx(i))*f_0(lambda,lambda*xx(i),r,m)*wei(i)
   enddo
   return
 end function f_lambda
 
-real*8 function f_prime_lambda(R,m,lambda,nla)
+real*8 function f_prime_lambda(r,m,lambda,nla)
 implicit none
-  integer::i,nla
-  real*8,allocatable::wei(:),xx(:)
-  real*8::R,m,lambda,f_prime_0
-  allocate(xx(nla))
+integer::i,nla
+  real*8,allocatable::wei(:),kk(:)
+  real*8::r,m,lambda,lkk,bessel,C_lambda
+  allocate(kk(nla))
   allocate(wei(nla))
-  f_prime_lambda=0.d0
-  call setgaulag(3.d0,nla,wei,xx)
+  f_prime_lambda=0
+  call setgaulag(0.d0,nla,wei,kk)
   do i = 1,nla
-     f_prime_lambda = f_prime_lambda+exp(xx(i))*f_prime_0(xx(i),R,lambda,m)*wei(i)
+     lkk=kk(i)
+     f_prime_lambda = f_prime_lambda+exp(kk(i))*(lkk**2)*C_lambda(lkk,lambda)*bessel(0,lkk*r)/(lkk**2+m**2)*wei(i)
+!     write(*,*)"nolam",wei(i),lkk,f_prime_lambda
   enddo
+  f_prime_lambda=f_prime_lambda/(2.d0*acos(-1.d0)**2*lambda)
+!  write(*,*)"lam",f_prime_lambda
   return
 end function f_prime_lambda
 
-real*8 function ff_0(k,R,q,y,lambda,m)
-  implicit none
-  real*8::k,R,q,m,y,sbessel,lambda,C_lambda
-  ff_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
-  ff_0 = C_lambda(k,lambda)*ff_0*(sbessel(k*r/197.326))/(k**2+m**2+(q**2)*(y-1)/4)
-  return
-end function ff_0
+!real*8 function ff_0(k,R,q,y,lambda,m)
+!  implicit none
+!  real*8::k,R,q,m,y,sbessel,lambda,C_lambda
+!  ff_0 = 1/(2.d0*(3.14159265358979d0**2)*lambda)
+!  ff_0 = C_lambda(k,lambda)*ff_0*(sbessel(k*r/197.326))/(k**2+m**2+(q**2)*(y-1)/4)
+!  return
+!end function ff_0
 
-real*8 function ff_lambda(R,q,y,m,lambda)
-  implicit none
-  integer::i,nla
-  real*8,allocatable::wei(:),xx(:)
-  real*8::R,q,m,y,lambda,ff_0
-  allocate(xx(nla))
-  allocate(wei(nla))
-  ff_lambda=0.d0
-  call setgaulag(2.d0,nla,wei,xx)
-  do i = 1,nla
-     ff_lambda = ff_lambda+exp(xx(i))*ff_0(xx(i),R,q,y,lambda,m)*wei(i)
-  enddo
+!real*8 function ff_lambda(R,q,y,m,lambda)
+!  implicit none
+!  integer::i,nla
+!  real*8,allocatable::wei(:),xx(:)
+!  real*8::R,q,m,y,lambda,ff_0
+!  allocate(xx(nla))
+!  allocate(wei(nla))
+!  ff_lambda=0.d0
+!  call setgaulag(2.d0,nla,wei,xx)
+!  do i = 1,nla
+!     ff_lambda = ff_lambda+exp(xx(i))*ff_0(xx(i),R,q,y,lambda,m)*wei(i)
+ ! enddo
 
 
 
-end function ff_lambda  !nla=181
+!end function ff_lambda  !nla=181
 !  m=138.03919333333d0
  ! lambda=600.d0
  

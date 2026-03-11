@@ -2,11 +2,12 @@ program monte_carlo
   use mpi_modules
   use pre_deut
   use operator_calc
+  use wigner
   implicit none
 
   integer,parameter::npart = 2
   real*8,allocatable::rpart_o(:,:)
-  real*8::norm,f_lambda
+  real*8::norm,f_prime_lambda,xxxxxx
   logical::acc
   complex*16::cwf(4,2)
   integer::i,j,ii,jj,iq,ir
@@ -16,6 +17,7 @@ program monte_carlo
   integer::nspin,niso
   integer::accp,acc_move
   real*8::r,rr(3,2),rcm(3),dr(3),q(3)
+  real*8::bessel
   real*8,allocatable::obs(:)
   real*8,allocatable::obs_av(:)
   real*8,allocatable::obs_av_w(:)
@@ -25,12 +27,11 @@ program monte_carlo
   
   real*8::wfa(2,40)
   real*8::obs0,rr2
-  !write(*,*)'test'
   
   real*8::b_int,b5,h,bounds(2),f_0
   integer::ias,ndim
   real*8,allocatable::a(:)
-  
+  write(*,*)"test1"
   
 
 
@@ -38,24 +39,34 @@ program monte_carlo
 
 
  ! call operator_calc()
-   call start_mpi()
+  call start_mpi()
+  write(*,*)"test2"
+  open(unit=100,file="input.txt")
   if(proc_rank.eq.0)then
      do i = 1,80
-       ! write(*,*)(i-1)/100+1,mod(i,100)
-        read(5,*)wfa((i-1)/40+1,mod(i,41)+i/41) !<-- This is used to read the file of the wave function change as you need
+        write(*,*)(i-1)/40+1,mod(i,40)
+        read(100,*)wfa((i-1)/40+1,mod(i,41)+i/41) !<-- This is used to read the file of the wave function change as you need
      enddo
+     write(*,*)"test3"
      msg%wf=wfa
-     read(5,*)msg%nwalk
-     read(5,*)msg%neq
-     read(5,*)msg%nav
-     read(5,*)msg%ncorr
-     read(5,*)msg%sigma
-     read(5,*)msg%nla
-     read(5,*)msg%iarray(1)
-     read(5,*)msg%iarray(2)
-     read(5,*)msg%mass
-     read(5,*)msg%lambda
+     read(100,*)msg%nwalk
+     read(100,*)msg%neq
+     read(100,*)msg%nav
+     read(100,*)msg%ncorr
+     read(100,*)msg%sigma
+     read(100,*)msg%nla
+     read(100,*)msg%iarray(1)
+     read(100,*)msg%iarray(2)
+     read(100,*)msg%mass
+     read(100,*)msg%lambda
+     read(100,*)msg%hbarc
   end if
+  open(unit=99,file="function.txt")
+  do i = 1,100
+     xxxxxx=f_prime_lambda((10.d0/100)*i/msg%hbarc,msg%mass,msg%lambda,178)
+     write(99,*)xxxxxx
+  enddo
+  stop
 !  do i=1,2
  !    do j=1,40
   !      write(*,*)'wfa(',i,j,')=', msg%wf(i,j)
@@ -79,19 +90,24 @@ program monte_carlo
   h=(bounds(2)-bounds(1))/real(ndim)
   allocate(a(ndim))
   b_int = 0.d0
-  do i = 1,ndim
+  !do i = 1,ndim
 
 
 
-     a(i)=((real(i)*h)**2)*f_0(real(i)*h,2.d0,msg%lambda,msg%mass)
+ !    a(i)=((real(i)*h)**2)*f_0(real(i)*h,2.d0,msg%lambda,msg%mass)
 
 
-  enddo
-b_int = b5(1,ndim,0.d0,0.d0,h,0.d0,0.d0,ndim,a,ias)
-  
-  write(*,*)"gaulag f(2)",f_lambda(2.d0,msg%mass,msg%lambda,msg%nla)
-  write(*,*)"b5 f(2)",b_int
-  stop
+!  enddo
+!b_int = b5(1,ndim,0.d0,0.d0,h,0.d0,0.d0,ndim,a,ias)
+ 
+ 
+ 
+ 
+  xxxxxx=f_prime_lambda(2.d0/msg%hbarc,msg%mass,msg%lambda,178)
+ 
+
+ 
+ 
 
 !  write(*,*)proc_rank!quantity you want to check
   allocate(rpart_o(3,npart))

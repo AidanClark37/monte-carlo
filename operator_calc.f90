@@ -1,7 +1,7 @@
 !-----------------------------------------------
 !s_wf - nspin, niso, particle number, coordinate index
 !calculate simga_1,2 x y and z operator actions
-!ss_wf - nspin, niso, coordinate index for sigma_2 and sigma_2
+!ss_wf - nspin, niso, coordinate index for sigma_1 and sigma_2
 !calculates sigma_1^i sigma_2^j for all i,j<=3
 !t_wf - nspin, niso, particle number
 !only calculates z component of tau_1,2

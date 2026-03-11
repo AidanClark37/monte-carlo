@@ -14,6 +14,8 @@ module mpi_modules
      integer           ::iarray(2)
      real*8            ::mass
      real*8            ::lambda
+     real*8            ::hbarc
+
 
   end type input
 
@@ -29,6 +31,8 @@ module mpi_modules
   integer           ::iarray(2)
   real*8            ::lambda
   real*8            ::mass
+  real*8            ::hbarc
+
 
   !general settings
   integer::nwalks_for_proc
