@@ -83,9 +83,10 @@
    10   #nav
    10   #ncorr
    3.d0  #sigma
-   181                   #nla
-   2                     #iarray
-   3
-   138.03919333333d0     #m
-   600.d0                #lambda
+   1000                  #nla for b5 integration of structure functions
+   2                     #npart
+   0                     #Tz
+   138.03919333333d0     #m pion mass
+   500.d0                #lambda cutoff
    197.32698d0           #hbarc
+   595                   #npoint for interpolation of stucture functions

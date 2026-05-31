@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
-   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./operator_calc.o ./deut_wave.o  ./operations.o  ./main.o ./operator_test.o ./radial_functions.o
+ ./mpi_modules.o wave_func.o param_calc.o /structure_functions.o ./interpolate.o ./isospin_ops.o ./tau_operator.o ./pre_deut_wave.o ./deut_wave.o ./metropolis.o ./operator_calc.o ./operations.o  ./main.o ./radial_functions.o ./dipoles.o 
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -38,7 +38,7 @@ HDRS= \
 # Commads and options for different compilers
 COMPILER=GNU
 
-DEBUG=FALSE
+DEBUG=TRUE
 #
 # Compiler parameters
 #
@@ -74,7 +74,7 @@ ifeq ($(COMPILER),CRAY)
 endif	
 
 ifeq ($(DEBUG),TRUE)
-  FFLAGS= -O0 -traceback -warn all -g
+  FFLAGS= -O0 -g -fcheck=all -fbacktrace -fsanitize=address,undefined
 endif
 
 ifeq ($(DEBUG),FALSE)

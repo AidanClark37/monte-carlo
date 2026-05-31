@@ -1,5 +1,5 @@
 
-integer function state_sign(p,i)
+  integer function state_sign(p,i)
   implicit none
   integer,intent(in)::i,p
   
@@ -16,10 +16,10 @@ integer function state_sign(p,i)
   return
 end function state_sign
 
-integer function flip(p,i)    ! give n row index i and particle number p, return the index of the row
+integer function flip(p,i)    ! given row index i and particle number p, return the index of the row
   implicit none
-  ! that results from flipping the spin of particle p
-  integer::i,p,state_sign                
+  integer,external::state_sign                            ! that results from flipping the spin of particle p
+  integer::i,p                
   !write(*,*)'start flip'
 
   flip=i-state_sign(p,i)*2**(p-1)
@@ -28,63 +28,98 @@ integer function flip(p,i)    ! give n row index i and particle number p, return
 end function flip
 
 integer function iso_index(i,niso,iso_array)
-  integer::i,niso,iso_array(niso),state_sign
+  integer::i,niso,iso_array(niso)
+  integer,external::state_sign
   iso_index = iso_array(i)
   return
 end function iso_index
 
-subroutine parameter_calc(N,Tz,nspin,niso,iarray)
-  implicit none
-  integer,intent(in)::N,Tz
-  integer,intent(out)::niso,nspin
-  integer,allocatable::iarray(:)
-  integer::itot,i,p,j,state_sign
-  nspin=2**N
-  do i = 1,nspin
-     itot=0
-     do p = 1,N
-        itot=itot+ state_sign(p,i)
-     enddo
-     if(itot==Tz) then
-        niso=niso+1
-     endif
-  enddo
-  allocate(iarray(niso))
-  do i = 1,nspin
-     itot=0
-     do p = 1,N
-        itot=itot+ state_sign(p,i)
-     enddo
-     if(itot==Tz) then
-        iarray(j)=i
-        j=j+1
-     endif
-  enddo
+!subroutine param_calc(npart,Tz)
+!  implicit none
+!  integer,intent(in)::npart,Tz
+!  integer,intent(out)::niso,nspin
+!  integer,allocatable::iarray(:),inviarray(:)
+!  integer::i,p,j,state_sign,nu,itot,count 
+!  real*8::gamma
+!  nspin=2**npart
+!  allocate(itot(nspin))
+!  allocate(inviarray(npsin))
+!  nu = (Tz+npart)/2
+  
+!  niso=gamma(real(npart+1))/(int(dgamma(dble(nu+1)))*int(dgamma(dble(npart-nu+1))))
+!  allocate(iarray(niso))
+!  count=1
+!  do i=1,nspin
+
+!     do p = 1, npart
+!        itot=0
+!        itot = itot + state_sign(p,i)
+!     enddo
+!     if(itot.eq.Tz)then
+!        iso_states(count)=itot
+!        count=count+1
+!     endif
+!  enddo
+!  do i =1,niso
+!     inviarray(iarray(i)) = i
+     
+ ! write(*,*)"nspin!",nspin,gamma(real(nspin+1))
+ ! write(*,*)"nu!",nu,(gamma(real(nu+1)))
+ ! write(*,*)"(nspin-nu)!",(gamma(real(nspin-nu+1)))
+ ! write(*,*)"niso",niso
+  
 
 
-end subroutine parameter_calc
+
+
+ 
+
+ 
+ 
+
+  !write(*,*)"test"
+!  do i = 1,nspin
+!    j=1
+!    if(itot(i)==Tz) then
+!       write(*,*)"one"
+!       iarray(j)=i
+!       write(*,*)"two"
+!       j=j+1
+!    endif
+! enddo
+! write(*,*)iarray(1)
+
+
+!end subroutine param_calc
 
   
   
 
-subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
+subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
                    
   !p - particle number, 1,2, up to the number of particles N
   !b - coordinate index
   !N - total number of particles
   !niso
+  use mpi_modules
+  use param_calc
   implicit none
-  integer,intent(in)::p,b,N,niso
-  integer::i,j,flip,nspin,state_sign
-  complex*16,intent(in)::wf(2**N,niso)
-  complex*16,intent(out)::sigma_wf(2**N,niso)
-  nspin=2**N
-!  write(*,*)'niso:',niso
+  integer,intent(in)::p,b
+  integer::i,j
+  integer,external::flip,state_sign
+  complex*16,intent(in)::wfin(4,2)
+  complex*16,intent(out)::sigma_wf(4,2)
+  !write(*,*)'niso:',niso
   select case(b)
      case(1)  !sigma_x
         do i = 1,nspin
-           do j = 1,niso              
-              sigma_wf(i,j)=wf(flip(p,i),j)
+           do j = 1,niso
+
+
+
+
+
+              sigma_wf(i,j)=wfin(flip(p,i),j)
 !              write(*,*)i,j,' | ',flip(p,i),j
 !              write(*,*)wf(i,j),'| ',wf(flip(p,i),j)
               !write(*,*)sigma_wf(i,j)
@@ -95,7 +130,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
         do i = 1,nspin
            do j=1,niso
               
-             sigma_wf(i,j)=-dcmplx(0,1)*state_sign(p,i)*wf(flip(p,i),j)
+             sigma_wf(i,j)=-dcmplx(0,1)*state_sign(p,i)*wfin(flip(p,i),j)
           enddo
        enddo
        !write(*,*)'end case 2'
@@ -103,7 +138,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
        do i = 1,nspin
           do j=1,niso
  
-             sigma_wf(i,j)=state_sign(p,i)*wf(i,j)
+             sigma_wf(i,j)=state_sign(p,i)*wfin(i,j)
           enddo
        enddo
     case default
@@ -112,14 +147,54 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     return
   end subroutine spin
 
-  subroutine isospin(iarray,wf,p,b,N,niso,tau_wf)
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !input for pauli:
+  !p: particle number, which paricle the pauli matrix is operating on
+  !values: 1 through the number of particles (n)
+  !b: coordinate index, which pauli matrix is operating
+  !values: 1,2,3
+  !i: row index, which row of the state vector is being moved
+  !values: 1 through 2**n
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !ouput for pauli:
+  !iout: where the row indicated by index i would be swapped with
+  !values: 1 through 2**n
+  !cout: the constant this row would be multiplied by for a specific pauli matrix
+  !values: -1, 1, -i, or i
+
+  subroutine pauli(p,b,i,iout,cout)
     implicit none
-    integer,intent(in)::p,b,N,niso
-    integer,intent(in)::iarray(niso)
-  integer::i,j,flip,nspin,state_sign,jj,k
-  complex*16,intent(in)::wf(4,2)
+    integer,intent(in)::p,b,i
+    integer,intent(out)::iout
+    complex*16,intent(out)::cout
+    integer,external::state_sign,flip
+    
+    select case(b)
+    case(1)
+       iout = flip(p,i)
+       cout=1
+    case(2)
+       iout= flip(p,i)
+       cout= -cmplx(0,1)*state_sign(p,i)
+    case(3)
+       iout=i
+       cout=state_sign(p,i)
+    case default
+       write(*,*) "fail"
+    end select
+    
+  end subroutine pauli
+
+  
+  subroutine isospin(wf_in,p,b,tau_wf)
+    use mpi_modules
+    use param_calc
+    implicit none
+    integer,intent(in)::p,b
+    integer::i,j,jj,k
+    integer,external::flip,state_sign
+  complex*16,intent(in)::wf_in(4,2)
   complex*16,intent(out)::tau_wf(4,2)
-  nspin=2**N
   !allocate(iarray(niso))
   select case(b)
      case(1)  !tau_x                                                                                                  
@@ -128,7 +203,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
               !write(*,*)'for j=',j, iarray(j),flip(p,iarray(j))
               jj = flip(p,iarray(j))
               if (ANY(iarray==jj)) then
-                 tau_wf(i,j)=wf(i,jj)
+                 tau_wf(i,j)=wf_in(i,jj)
               else
                  tau_wf(i,j)=cmplx(0,0)
 
@@ -144,7 +219,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
            do j=1,niso
               jj=flip(p,iarray(j))
               if (ANY(iarray==jj)) then
-                 tau_wf(i,j)=-dcmplx(0,1)*state_sign(p,iarray(j))*wf(i,jj)
+                 tau_wf(i,j)=-dcmplx(0,1)*state_sign(p,iarray(j))*wf_in(i,jj)
               else
                  tau_wf(i,j)=cmplx(0,0)
 
@@ -157,7 +232,7 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     case(3)  !tau_z                                                                                                  
        do i = 1,nspin
           do j=1,niso
-             tau_wf(i,j)=state_sign(p,iarray(j))*wf(i,j)
+             tau_wf(i,j)=state_sign(p,iarray(j))*wf_in(i,j)
              !write(*,*)i,j,tau_wf(i,j),state_sign(p,iarray(j)),wf(i,j)
           enddo
        enddo
@@ -172,26 +247,26 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
     return
   end subroutine isospin
 
-  subroutine rho_NNg(iarray,wf_in,N,niso,pm,exp)
-    implicit none
-    integer,intent(in)::iarray(niso),N,niso
-    integer::p,nspin,i,j,pm,state_sign
-    complex*16,intent(in)::wf_in(4,niso)
-    real*8,intent(out)::exp
-    complex*16,allocatable::cc_wf(:,:),tau_wf(:,:),spin_tau_wf(:,:),wf_out(:,:),tau_one_wf(:,:)
-    nspin=2**N
+  !subroutine rho_NNg(iarray,wf_in,N,niso,pm,exp)
+  !  implicit none
+  !  integer,intent(in)::iarray(niso),N,niso
+  !  integer::p,nspin,i,j,pm,state_sign
+  !  complex*16,intent(in)::wf_in(4,niso)
+  !!  real*8,intent(out)::exp
+  !  complex*16,allocatable::cc_wf(:,:),tau_wf(:,:),spin_tau_wf(:,:),wf_out(:,:),tau_one_wf(:,:)
+  !  nspin=2**N
     
-    allocate(cc_wf(nspin,niso))
-    allocate(tau_wf(nspin,niso))
-    allocate(spin_tau_wf(nspin,niso))
-    allocate(wf_out(nspin,niso))
-    allocate(tau_one_wf(nspin,niso))
-    exp=0.d0
-    wf_out=dcmplx(0.d0,0.d0)
-    do p = 1,N
-    call isospin(iarray,wf_in,p,3,2,2,tau_wf)
+ !   allocate(cc_wf(nspin,niso))
+ !   allocate(tau_wf(nspin,niso))
+ !   allocate(spin_tau_wf(nspin,niso))
+ !   allocate(wf_out(nspin,niso))
+ !   allocate(tau_one_wf(nspin,niso))
+ !   exp=0.d0
+ !   wf_out=dcmplx(0.d0,0.d0)
+ !   do p = 1,N
+ !   call isospin(wf_in,p,3,tau_wf)
     !tau_one_wf(:,:)=tau_wf(:,:) + wf_in(:,:)
-          tau_one_wf = 0.5d0*(tau_wf + wf_in)
+ !         tau_one_wf = 0.5d0*(tau_wf + wf_in)
     !   end do
     !end do
     !write(*,*)"particle = ",p
@@ -207,260 +282,26 @@ subroutine  spin(wf,p,b,N,niso,sigma_wf)   !wf - matrix input, wavefunction
 !    end do
 !    end if
     
-    call spin(tau_one_wf,p,3,2,2,spin_tau_wf)
-          wf_out = wf_out + spin_tau_wf
+ !   call spin(tau_one_wf,p,3,2,2,spin_tau_wf)
+ !         wf_out = wf_out + spin_tau_wf
     
- enddo
+ !enddo
 
- cc_wf = conjg(wf_in)
+! cc_wf = conjg(wf_in)
  
-    do i = 1,nspin
-       do j = 1,niso
+!    do i = 1,nspin
+!       do j = 1,niso
           !if(proc_rank.eq.1)write(*,*)wf_in(i,j),cc_wf(i,j),wf_out(i,j)
-          exp =	exp + cc_wf(i,j)*wf_out(i,j)
+!          exp =	exp + cc_wf(i,j)*wf_out(i,j)
           !write(*,*)proc_rank,i,j,exp
-       enddo
+!       enddo
        
-    enddo
+!    enddo
 !    write(*,*) proc_rank,exp
     !stop
-return
+!return
 
-end subroutine rho_NNg
-
-subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
-  !eqn(39)
-  use operator_calc
-    implicit none
-    integer::p,nspin,i,j,pm,state_sign
-    integer,intent(in)::N,niso
-    complex*16,intent(in)::wf_in(2**N,niso)
-    real*8,intent(out)::exp
-    complex*16,allocatable::cc_wf(:,:),tau_wf(:,:),spin_tau_wf(:,:),wf_out(:,:),tau_one_wf(:,:)
-    nspin=2**N
-    exp=0.d0
-     allocate(cc_wf(nspin,niso))
-    allocate(wf_out(nspin,niso))
-   
-
-    wf_out = dcmplx(0,0)
-    do p = 1, N
-       wf_out(:,:) = wf_out(:,:) +pm*0.5*st_wf(1,1,p,3,p) + 0.5*s_wf(:,:,p,3)
-    enddo
-    cc_wf = conjg(wf_in)
-    do i = 1, nspin
-       do j  = 1, niso
-          exp = exp + wf_out(i,j)*cc_wf(i,j)
-       enddo
-       enddo
-          return
-  end subroutine rho_NNg_other
-
-  subroutine rho_NNpTRV_NNpgPC_1(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(53) term proportional involving f prime
-    use operator_calc
-    implicit none
-    
-   
-    real*8,intent(in)::rr(3,2)
-    complex*16,intent(in)::cwf(2**N,niso)
-    integer,intent(in)::iarray(niso),N,niso
-    real*8,intent(out)::exp
-    integer::p,i,j,a,ii,jj,nspin
-    real*8::dr(3),rhat(3),r,qr,q(3)
-    complex*16::total(2**N,niso),ccwf(2**N,niso)
-    nspin=2**N
-    !do i = 1,3
-    !   dr(i) = rr(i,1)-rr(i,2)
-    !   r = r + dr(i)**2
-    !enddo
-    !r = dsqrt(r)
-    total = dcmplx(0,0)
-    do i=1,3
-       rhat(i)=dr(i)/r
-    enddo
-    do p=1,2
-       qr=0.d0
-       do i = 1,3
-          qr = qr + q(i)*rr(i,p)
-       enddo
-       
-       do a = 1,3
-          do ii = 1,nspin
-             do jj = 1,niso
-                total(ii,jj) = total(ii,jj) +((-1)**(p-1))*stt_wf(ii,jj,p,a,1,2)*dcmplx(COS(qr),SIN(qr))*rhat(a)
-                
-                
-                
-                total(ii,jj) = total(ii,jj) +((-1)**p)*stt_wf(ii,jj,p,a,2,1)*dcmplx(COS(qr),SIN(qr))*rhat(a)
-           
-             enddo
-             
-       enddo
-    enddo
-    
-    enddo
-    
-    ccwf=conjg(cwf)
-    exp=0.d0
-    do i = 1,nspin
-       do j = 1,niso
-          exp=exp+ccwf(i,j)*total(i,j)
-       enddo
-    enddo
-    
-       
-    
-    
-  end subroutine rho_NNpTRV_NNpgPC_1
-
-  subroutine rho_NNpTRV_NNpgPC_2(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(53) term involving grad(psi)
-  end subroutine rho_NNpTRV_NNpgPC_2
-
-  subroutine rho_NNpTRV_NNpgHB_0(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(55) g_0 term
-    use operator_calc
-    implicit none
-
-    real*8,intent(in)::rr(3,2)
-    complex*16,intent(in)::cwf(2**N,niso)
-    integer,intent(in)::iarray(niso),N,niso
-    real*8,intent(out)::exp
-    integer::p,i,j,a,ii,jj,nspin
-    real*8::dr(3),rhat(3),r,qr,q(3)
-    complex*16::total(2**N,niso),ccwf(2**N,niso)
-    nspin=2**N
-    total = dcmplx(0.d0,0.d0)
-    do p = 1,2
-       do a = 1,3
-          do ii = 1,nspin
-             do jj= 1,niso
-                do i=1,3
-                   total(ii,jj)=total(ii,jj)+stt_wf(ii,jj,p,a,i,i)*q(a)
-                enddo
-                total(ii,jj)=total(ii,jj)+st_wf(ii,jj,p,a,p)*q(a)
-             enddo
-          enddo
-       enddo
-    enddo
-    
-    ccwf=conjg(cwf)
-    exp=0.d0
-    do i = 1,nspin
-       do j = 1,niso
-          exp=exp+ccwf(i,j)*total(i,j)
-       enddo
-    enddo
-
-          return      
-       
-  end subroutine rho_NNpTRV_NNpgHB_0
-
-  subroutine rho_NNpTRV_NNpgHB_1(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(55) g_1 term
-    use operator_calc
-    implicit none
-
-    real*8,intent(in)::rr(3,2)
-    complex*16,intent(in)::cwf(2**N,niso)
-    integer,intent(in)::iarray(niso),N,niso
-    real*8,intent(out)::exp
-    integer::p,i,j,a,ii,jj,nspin
-    real*8::dr(3),rhat(3),r,qr,q(3)
-    complex*16::total(2**N,niso),ccwf(2**N,niso)
-    nspin=2**N
-    total = dcmplx(0.d0,0.d0)
-    do p = 1,2
-       do a = 1,2
-          do ii=1,nspin
-             do jj=1,niso
-                total(ii,jj)=total(ii,jj) + (st_wf(ii,jj,p,a,p) + s_wf(ii,jj,p,a))*q(a)
-             enddo
-          enddo
-       enddo
-    enddo
-    ccwf=conjg(cwf)
-    exp=0.d0
-    do i = 1,nspin
-       do j = 1,niso
-          exp=exp+ccwf(i,j)*total(i,j)
-       enddo
-    enddo
-    return
-  end subroutine rho_NNpTRV_NNpgHB_1
-
-  subroutine rho_NNpTRV_NNpgHB_2(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(55) g_1 term
-    use operator_calc
-    implicit none
-
-    real*8,intent(in)::rr(3,2)
-    complex*16,intent(in)::cwf(2**N,niso)
-    integer,intent(in)::iarray(niso),N,niso
-    real*8,intent(out)::exp
-    integer::p,i,j,a,ii,jj,nspin
-    real*8::dr(3),rhat(3),r,qr,q(3)
-    complex*16::total(2**N,niso),ccwf(2**N,niso)
-    nspin=2**N
-    total = dcmplx(0.d0,0.d0)
-    do p = 1,2
-       do a = 1,3
-          do ii=1,nspin
-             do jj= 1, niso
-                total(ii,jj) = total(ii,jj) + (stt_wf(ii,jj,p,a,3,3) + st_wf(ii,jj,p,a,p))*q(a)
-             enddo
-          enddo
-       enddo
-    enddo
-    
-    ccwf=conjg(cwf)
-    exp=0.d0
-    do i = 1,nspin
-       do j = 1,niso
-          exp=exp+ccwf(i,j)*total(i,j)
-       enddo
-    enddo
-    return
-  end subroutine rho_NNpTRV_NNpgHB_2
-  
-  subroutine rho_NNpTRV_ppg_PC(rr,dr,r,q,iarray,cwf,N,niso,exp)
-    !eqn(56)
-    use operator_calc
-    implicit none
-
-    real*8,intent(in)::rr(3,2)
-    complex*16,intent(in)::cwf(2**N,niso)
-    integer,intent(in)::iarray(niso),N,niso
-    real*8,intent(out)::exp
-    integer::p,i,j,a,ii,jj,nspin
-    real*8::dr(3),rhat(3),r,qr,q(3)
-    complex*16::total(2**N,niso),ccwf(2**N,niso)
-    nspin=2**N
-    total = dcmplx(0.d0,0.d0)
-    do i=1,3
-       rhat(i)=dr(i)/r
-    enddo
-    do p = 1,2
-       do a = 1, 3
-          do ii = 1,nspin
-             do jj=1,niso
-                do i = 1,2
-                   total(ii,jj) = total(ii,jj) + stt_wf(ii,jj,p,a,i,i)*rhat(a)
-                enddo
-             enddo
-          enddo
-       enddo
-    enddo
-    exp=0.d0
-    do i = 1,nspin
-       do j = 1,niso
-          exp=exp+ccwf(i,j)*total(i,j)
-       enddo
-    enddo
-    return
-
-  end subroutine rho_NNpTRV_ppg_PC
+!end subroutine rho_NNg
 
   subroutine tau_exp_val(iarray,cwf,b,N,niso,nspin,tau_exp)
     implicit none
@@ -472,7 +313,7 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
     allocate(cc_wf(nspin,niso))
     allocate(tau_wf(nspin,niso))
     do p = 1,N
-       call isospin(iarray,cwf,p,3,N,niso,tau_wf)
+       call isospin(cwf,p,3,tau_wf)
     enddo
     cc_wf=conjg(cwf)
     tau_exp=0.d0
@@ -487,23 +328,6 @@ subroutine rho_NNg_other(wf_in,N,niso,pm,exp)
   
 
 
-  subroutine spin_exp_val(cwf,b,N,niso,nspin,spin_exp)
-    implicit none
-    integer,intent(in)::b,N,niso,nspin
-    complex*16,intent(in)::cwf(nspin,niso)
-    complex*16::spin_cwf(nspin,niso),cc_cwf(nspin,niso)
-    real*8,intent(out)::spin_exp
-    integer::p,i,j
-    spin_exp=0
-    do p = 1,N
-       call spin(cwf,p,b,N,niso,spin_cwf)
-       cc_cwf=conjg(cwf)
-       do i = 1,nspin
-          do j=1,niso
-             spin_exp=spin_exp+cc_cwf(i,j)*spin_cwf(i,j)
-          enddo
-       enddo
-    enddo
-  end subroutine spin_exp_val
+
 
 
