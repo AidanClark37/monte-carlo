@@ -38,7 +38,7 @@ HDRS= \
 # Commads and options for different compilers
 COMPILER=GNU
 
-DEBUG=TRUE
+DEBUG=FALSE
 #
 # Compiler parameters
 #
