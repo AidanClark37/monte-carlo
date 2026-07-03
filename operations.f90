@@ -182,6 +182,7 @@ subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
     case default
        write(*,*) "fail"
     end select
+    return
     
   end subroutine pauli
 

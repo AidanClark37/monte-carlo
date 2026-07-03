@@ -1,7 +1,7 @@
-program monte_carlo
+  program monte_carlo
   use mpi_modules
   use pre_deut
-  use operator_calc
+use operator_calc
   use wigner
   use isospin_operators
  use tau_operator
@@ -12,7 +12,7 @@ program monte_carlo
 
 
   real*8,allocatable::rpart_o(:,:)
-  real*8::norm,f_prime_lambda,xxxxxx,f_lambda,f_2prime_lambda,g_lambda,g_prime_lambda,g_2prime_lambda
+  real*8::norm,f_prime_lambda,xxxxxx,f_lambda,f_2prime_lambda,g_lambda,g_prime_lambda,g_2prime_lambda,exp
   logical::acc
   complex*16::testcwf2(4,2),testcwf3(4,2),cout
  complex*16,allocatable::cwf(:,:),testcwf(:,:),twf(:,:)
@@ -38,12 +38,8 @@ program monte_carlo
   integer::ias,ndim
 
   real*8,allocatable::a(:)
-call cpu_time(start)
+!call cpu_time(start)
   call pre_deut_wave()
-!  do si = 1,4
-!     write(*,*) warray(si,1,2),warray(si,2,2)
-!  enddo
-  !stop
   call start_mpi()
 
   if(proc_rank.eq.0)then
@@ -67,103 +63,20 @@ call cpu_time(start)
      read(100,*)msg%lambda
      read(100,*)msg%hbarc
      read(100,*)msg%npoint
-    ! write(*,*)"npoint",msg%hbarc
-
-!     open(unit=79,file="sqif595.txt")
-!     write(*,*)"eh?"
-!     call struct_func_calc(0.d0,10.d0/msg%hbarc)
-  !   write(*,*)"eh"
- !    write(*,*)xarray(2)
-!     write(*,*)"eh."
- !    do si=0,99
-!        call interpolate(flarr,(dble(si)+0.5)*10/(99*msg%hbarc),ytest)
-        !write(*,*)xarray(si+1)*msg%hbarc
-        !write(*,*)dble(si)*10/(99)
-!        write(79,*)ytest
-    !call interpolate(fl1arr,0.3d0/msg%hbarc,ytest)
-!     enddo
-! close(79)    
-!     stop
-!     xxxxxx=f_prime_lambda(0.3d0/msg%hbarc)
-!     write(*,*)"real:",xxxxxx,"inter:",ytest
-!     open(unit=99,file="sbf.txt")
-!     open(unit=98,file="bf1.txt")
-!     open(unit=97,file="bf2.txt")
-!     open(unit=96,file="bC.txt")
-!     open(unit=95,file="bC1.txt")
-!     open(unit=94,file="bC2.txt")
-!     open(unit=93,file="bg.txt")
-!     open(unit=92,file="bg1.txt")
-!     open(unit=91,file="bg2.txt")
-!     open(unit=90,file="bL.txt")
-!     open(unit=89,file="bL1.txt")
-!     open(unit=88,file="bL2.txt")
-!     open(unit=87,file="bH.txt")
-!     open(unit=86,file="bH1.txt")
-!     open(unit=85,file="bH2.txt")
-!     open(unit=84,file="bG.txt")
-!     open(unit=83,file="bG1.txt")
-!     open(unit=82,file="bG2.txt")
-!  do si = 0,99
-!     xi=(dble(si)+0.5)*10/(99*msg%hbarc)
-!         write(*,*)xi*msg%hbarc
-!     xxxxxx=f_lambda(xi)
-    ! write(99,*)xxxxxx
-     !write(*,*)"flam:",si,xi*msg%hbarc
-!     xxxxxx=f_prime_lambda(xi)
-!     write(*,*)xxxxxx
-!     write(98,*)xxxxxx
-!     xxxxxx=f_2prime_lambda(xi)
-!     write(97,*)xxxxxx
-!     xxxxxx=C_lambda(xi)
-!     write(96,*)xxxxxx
-!     xxxxxx=C_prime_lambda(xi)
-!     write(95,*)xxxxxx
-!     xxxxxx=C_2prime_lambda(xi)
-!     write(94,*)xxxxxx
-!     xxxxxx=g_lambda(xi)
-!     write(93,*)xxxxxx
-!     xxxxxx=g_prime_lambda(xi)
-!     write(92,*)xxxxxx
-!     xxxxxx=g_2prime_lambda(xi)
-!     write(91,*)xxxxxx
-!     xxxxxx=L_lambda(xi)
-!     write(90,*)xxxxxx
-!     xxxxxx=L_prime_lambda(xi)
-!     write(89,*)xxxxxx
-!     xxxxxx=L_2prime_lambda(xi)
-!     write(88,*)xxxxxx
-!     xxxxxx=H_lambda(xi)
-     !     write(*,*)xxxxxx
-!     write(87,*)xxxxxx
-!     xxxxxx=H_prime_lambda(xi)
-!     write(86,*)xxxxxx
-!     xxxxxx=H_2prime_lambda(xi)
-!     write(85,*)xxxxxx
-!     xxxxxx=G1_lambda(xi)
-!     write(84,*)xxxxxx
-!     xxxxxx=G1_prime_lambda(xi)
-!     write(83,*)xxxxxx
-!     xxxxxx=G1_2prime_lambda(xi)
-!     write(82,*)xxxxxx
-!  enddo
-!  close(99)
-     !  stop
+ 
      
-call parameter_calc(msg%npart,msg%Tz)
-call isospin_ops()
-  call struct_func_calc(0.d0,10.d0/msg%hbarc)
+call parameter_calc(msg%npart,msg%Tz) !calculate constants - niso,nspin,
+call isospin_ops() ! call arrays for spin and isopin operations
+  call struct_func_calc(0.d0,10.d0/msg%hbarc) !calculate interpolation poins for structure funcitons
 end if
   call mpi_broadcast_input()
   call general_setting()
  
-!  write(*,*)"niso in main",niso
-!  write(*,*)"iarray:",iarray(1),iarray(2)
   
   !Initialize the wave function here
   allocate(rpart_o(3,msg%npart))
   jz= 1;!select the jz (typically jz=tot j
-  nq=2
+  nq=10
 
   !initialization of the observables vectors
   allocate(obs(nq)) !<-selcect nq based on what you need
@@ -179,11 +92,7 @@ end if
  
   
   
-        open(unit=15,file="ervals.txt")
-!        open(unit=16,file="qifvals.txt")
-  !        open(unit=17,file="qbfvals.txt")
-  !obs(3)=0.d0
-  open(unit=20,file="est.txt")
+ 
   do i=1,nwalks_for_proc
 
      !Thermalization-----------------------------------------
@@ -223,44 +132,100 @@ end if
 
         
  
- call all_operators(cwf)
+ call all_operators(cwf)!precalculate spin operated wavefuncitons
      
-!call struct_func_calc(0.d0,10.d0/msg%hbarc)     
+
  
  if (proc_rank.eq.0)then
-    !write(*,*)"rmax::",xarray(msg%npoint)
-!    call interpolate(flarr,r/msg%hbarc,ytest)
-!    xxxxxx=f_lambda(r/msg%hbarc)
-    write(15,*)r
-!    write(16,*)ytest
-!    write(17,*)xxxxxx
-    !write(*,*)flarr(msg%npoint)
+
 
         if (ii.eq.1)then
            if (i.eq.1)then
+              !-------------------------
+              !calculating spin operator example expectation vaules
+              !-------------------------
               
+              allocate(testcwf(4,2))
+              testcwf2(:,:)=conjg(cwf)
+     write(*,*)"------------------------"
+     write(*,*)"base wavefunction"
+     write(*,*)"--------------------------"
+     do si = 1,4
+        write(*,*)cwf(si,1),cwf(si,2)
+     enddo
+     write(*,*)"-------------------"
+     !sigma 1 
+     do sp =1,3
+        exp=dcmplx(0.d0,0.d0)
+        testcwf(:,:)=(s_wf(:,:,1,sp))
+       write(*,*) "S1",sp
+       write(*,*)"-------------------"
+       do si  =1,4
+          write(*,*) testcwf(si,1),testcwf(si,2)
+          ! do sj=1,2
+         !    exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+         !    enddo
+       enddo
+       call d0(cwf,sp,exp)
+       write(*,*)"--------------------"
+       write(*,*)"exp:",exp
+       write(*,*)"------------------"
+    enddo
 
- !    allocate(testcwf(4,2))                                                                                            
-!     allocate(twf(4,2))
-!     call tau2(cwf,1,2,testcwf)
-!     ytest=0.d0
-!     twf = conjg(cwf)
-!     do si  =1,4
-!        do sj=1,2
-!           ytest=ytest+twf(si,sj)*testcwf(si,sj)
-!        enddo
-!     enddo
-!     do si = 1,4
- !       write(*,*) cwf(si,1),cwf(si,2)
-  !   enddo
-     
-   !     write(*,*)"-----------------------"
-!do si=1,4
- !       write(*,*) s_wf(si,1,1,3),s_wf(si,2,1,3)
-  !   enddo
-     !stop
-   !     write(*,*)"psi* t1 dot t2 psi",ytest
-              f0sum=0.d0
+    !sigma 2
+    do sp =1,3
+	exp=dcmplx(0.d0,0.d0)
+        testcwf(:,:)=(s_wf(:,:,2,sp))
+       write(*,*) "S2",sp
+       write(*,*)"-------------------"
+       do si  =1,4
+          write(*,*) testcwf(si,1),testcwf(si,2)
+          do sj=1,2
+             exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+             enddo
+       enddo
+       write(*,*)"--------------------"
+       write(*,*)"exp:",exp
+       write(*,*)"------------------"
+    enddo
+
+    
+    !S_+^i r^i
+     do sp =1,3
+	exp=0.d0
+       testcwf(:,:)=(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
+       write(*,*) "S_+r",sp
+       write(*,*)"-------------------"
+       do si  =1,4
+          write(*,*) testcwf(si,1),testcwf(si,2)
+          !do sj=1,2
+          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+          !   enddo
+       enddo
+       call Srop(r,dr,sp,cwf,exp)
+       write(*,*)"--------------------"
+       write(*,*)"exp:",exp
+       write(*,*)"------------------"
+    enddo
+    !z S_+^i r^i
+    do sp =1,3
+        exp=dcmplx(0.d0,0.d0)
+       testcwf(:,:)=(dr(3)/msg%hbarc)*(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
+       write(*,*) "rS_+r",sp
+       write(*,*)"-------------------"
+       do si  =1,4
+          write(*,*) testcwf(si,1),testcwf(si,2)
+          !do sj=1,2
+          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+          !   enddo
+       enddo
+       call rSrop(r,dr,sp,cwf,exp)
+       write(*,*)"--------------------"
+       write(*,*)"exp:",exp
+       write(*,*)"------------------"
+    enddo
+    !calculating analytic for d0 (S_+^z)
+    f0sum=0.d0
               f2sum=0.d0
               do si=1,40
                  f0sum=f0sum + wfa(1,si)**2
@@ -270,39 +235,37 @@ end if
               func2=0.d0
               ftotal = 0.5*(f0sum-0.5*f2sum)
               call wave(func0)
-              write(*,*)"0",func0
+             ! write(*,*)"0",func0
            endif
         endif
      endif
 
+     !call g1V operator (~  z S_+ . rhat)
      call g1V(r,dr,cwf,3,obs(1))
-     call d0(cwf,3,obs(2))
-     !obs(3)=obs(3)+r*norm
-     !write(*,*)"a!",r,obs(2)
-     !stop
-!     call g0(r,dr,cwf,3,obs(3))
-     !write(*,*)obs(1)
-     !,obs(2)!  if(proc_rank.eq.1)write(*,*)'obs:',obs(1),norm
-     !obs(1)=obs(1)/norm
+     !call S_+^i for i=x,y,z
+     call d0(cwf,1,obs(2))
+     call d0(cwf,2,obs(3))
+     call d0(cwf,3,obs(4))
+     !call S_+^i r^i for i=x,y,z
+     call Srop(r,dr,1,cwf,obs(5))
+     call Srop(r,dr,2,cwf,obs(6))
+     call Srop(r,dr,3,cwf,obs(7))
+     !call z S_+^i r^i for i=x,y,z
+     call rSrop(r,dr,1,cwf,obs(8))
+     call rSrop(r,dr,2,cwf,obs(9))
+     call rSrop(r,dr,3,cwf,obs(10))
      obs=obs/norm
-     !write(*,*)obs(1)
-     
-     write(20,*)obs(1)
      obs_av=obs_av+obs
-    
-!     write(*,*)obs_av(1),rho(1)
-
-
-
   end do
-!     write(*,*)proc_rank,obs_av,obs_av/nav
+  !     write(*,*)proc_rank,obs_av,obs_av/nav
+  !a
      obs_av_w=obs_av_w+obs_av/nav
      obs_sg_w=obs_sg_w+(obs_av/nav)**2
      ! write(*,*)1.d0*acc_move(i)/nav/ncorr/i
 
   end do
-  close(20)
-  close(15)
+  !close(20)
+ ! close(15)
  ! close(16)
  ! close(17)
 !  write(*,*)proc_rank,obs_av_w
@@ -313,9 +276,17 @@ end if
   call int_reduction(acc_move,accp)
 
   if(proc_rank.eq.0)then
-     allocate(names(2))
+     allocate(names(nq))
      names(1) = "g1V"
-     names(2) = "d0"
+     names(2) = "s+x"
+     names(3) = "s+y"
+     names(4) = "s+z"
+     names(5) = "sx rx"
+     names(6) = "sy ry"
+     names(7) = "sz rz"
+     names(8) = "r sx rx"
+     names(9) = "r sy ry"
+     names(10)= "r sz rz"
      write(*,*)"Acceptance = ",dfloat(accp)/dfloat(nwalk*nav*ncorr)
      write(*,*)"Final results"
      write(*,*)"----------------------------"
@@ -324,38 +295,38 @@ end if
      close(21)
      do iq=1,nq
         write(*,*)names(iq),mean_obs(iq),sigma_obs(iq)
-        write(*,*)fl1arr(1)
+        !write(*,*)fl1arr(1)
      end do
+     write(*,*)"expected for g1V",mean_obs(8)+mean_obs(9)+mean_obs(10)
      write(*,*) "expected result for 2:",-2*ftotal
-     write(*,*) "expected result for 1:",(1.d0/3.d0)*func0
+     write(*,*) "expected result for 1:",func0
      !write(*,*)-func0,-func2,sqrt(2.d0)
   end if
 
-  deallocate(iarray)
-  deallocate(inviarray)
-  deallocate(p0arr)
-  deallocate(p1arr)
-  deallocate(p2arr)
-  deallocate(pxarr)
-  deallocate(c0arr)
-  deallocate(c1arr)
-  deallocate(c2arr)
-  deallocate(cxarr)
-  deallocate(flarr)
-  deallocate(Clarr)
-  deallocate(glarr)
-  deallocate(Llarr)
-  deallocate(Hlarr)
-  deallocate(fl1arr)
-  deallocate(Cl1arr)
-  deallocate(gl1arr)
-  deallocate(Ll1arr)
-  deallocate(Hl1arr)
-  deallocate(G1l1arr)
-  deallocate(gl2arr)
-  deallocate(G1l2arr)
+  !deallocate(iarray)
+  !deallocate(inviarray)
+  !deallocate(p0arr)
+  !deallocate(p1arr)
+  !deallocate(p2arr)
+  !deallocate(pxarr)
+  !deallocate(c0arr)
+  !deallocate(c1arr)
+  !deallocate(c2arr)
+  !deallocate(cxarr)
+  !deallocate(flarr)
+  !deallocate(Clarr)
+  !deallocate(glarr)
+  !deallocate(Llarr)
+  !deallocate(Hlarr)
+  !deallocate(G1larr)
+  !deallocate(fl1arr)
+  !deallocate(Cl1arr)
+  !deallocate(gl1arr)
+  !deallocate(Ll1arr)
+  !deallocate(Hl1arr)
+  !deallocate(G1l1arr)
+  !deallocate(gl2arr)
+  !deallocate(G1l2arr)
 call end_mpi()
-call cpu_time(finish)
-write(*,*)"time",finish-start
 end program monte_carlo
 

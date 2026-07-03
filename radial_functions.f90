@@ -43,19 +43,36 @@ end function Hk
 !r-space functions
 !====================================
 
-
+real*8 function jbessel(sel,x)
+  implicit none
+  integer,intent(in)::sel
+  real*8,intent(in)::x
+  real*8::bessel
+  select case(sel)
+  case(0)
+     jbessel=bessel(0,x)
+  case(1)
+     jbessel=-bessel(1,x)
+  case(2)
+     jbessel=(1.d0/3.d0)*(2*bessel(2,x)-bessel(0,x))
+  case(3)
+     jbessel = (1.d0/5.d0)*(2*bessel(3,x)-3*bessel(1,x))
+  end select
+  return
+end function jbessel
 
 !------------------------------------
 ! f lambda
 !------------------------------------
 
-real*8 function f_lambda(r)
+real*8 function f_lambda(p,r)
   use mpi_modules
   implicit none
   integer::i
   real*8,allocatable::af(:)
-  real*8::r,lkk,bessel,b5,Ck,h
+  real*8::r,lkk,jbessel,b5,Ck,h
   integer::ias
+  integer,intent(in)::p
   h=2.d0*msg%lambda/msg%nla
   allocate(af(msg%nla))
   ias=1
@@ -64,7 +81,7 @@ real*8 function f_lambda(r)
      af(i)=0
      lkk=real(i)*h
 
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)/(lkk**2+msg%mass**2)
+     af(i)=(lkk**(2+p))*Ck(lkk)*jbessel(p,lkk*r)/(lkk**2+msg%mass**2)
 
      
   enddo
@@ -80,7 +97,7 @@ use mpi_modules
   implicit none
 integer::i
   real*8,allocatable::af(:)
-  real*8::r,lkk,bessel,b5,Ck,h
+  real*8::r,lkk,jbessel,b5,Ck,h
   integer::ias
   h=2.d0*msg%lambda/msg%nla
   allocate(af(msg%nla))
@@ -90,12 +107,12 @@ integer::i
 
      af(i)=0
      lkk=real(i)*h
-     af(i)=(lkk**3)*Ck(lkk)*bessel(1,lkk*r)/(lkk**2+msg%mass**2)
+     af(i)=(lkk**3)*Ck(lkk)*jbessel(1,lkk*r)/(lkk**2+msg%mass**2)
 
 
   enddo
   f_prime_lambda = b5(1,msg%nla,0.d0,0.d0,h,0.d0,0.d0,msg%nla,af,ias)
-  f_prime_lambda=-f_prime_lambda/(2.d0*msg%lambda*acos(-1.d0)**2)
+  f_prime_lambda=f_prime_lambda/(2.d0*msg%lambda*acos(-1.d0)**2)
   return
 end function f_prime_lambda
 
@@ -104,7 +121,7 @@ use mpi_modules
   implicit none
 integer::i
   real*8,allocatable::af(:)
-  real*8::r,lkk,bessel,b5,Ck,h
+  real*8::r,lkk,jbessel,b5,Ck,h
   integer::ias
   h=2.d0*msg%lambda/msg%nla
   allocate(af(msg%nla))
@@ -112,11 +129,11 @@ integer::i
   do i = 1,msg%nla
      af(i)=0
      lkk=real(i)*h
-     af(i)=(lkk**4)*Ck(lkk)*(2*bessel(2,lkk*r)-bessel(0,lkk*r))/(lkk**2+msg%mass**2)
+     af(i)=(lkk**4)*Ck(lkk)*jbessel(2,lkk*r)/(lkk**2+msg%mass**2)
      
   enddo
   f_2prime_lambda = b5(1,msg%nla,0.d0,0.d0,h,0.d0,0.d0,msg%nla,af,ias)
-  f_2prime_lambda=f_2prime_lambda/(6.d0*msg%lambda*acos(-1.d0)**2)
+  f_2prime_lambda=f_2prime_lambda/(2.d0*msg%lambda*acos(-1.d0)**2)
   return
 end function f_2prime_lambda
 
@@ -124,12 +141,13 @@ end function f_2prime_lambda
 !------------------------------------
 !g lambda
 !------------------------------------
-real*8 function g_lambda(r)
+real*8 function g_lambda(p,r)
 use mpi_modules
   implicit none
 integer::i
-  real*8,allocatable::af(:)
-  real*8::r,lkk,bessel,b5,Ck,h
+real*8,allocatable::af(:)
+integer,intent(in)::p
+  real*8::r,lkk,jbessel,b5,Ck,h
   integer::ias
   h=2.d0*msg%lambda/msg%nla
   allocate(af(msg%nla))
@@ -139,7 +157,7 @@ integer::i
      
      af(i)=0
      lkk=real(i)*h
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)/(lkk**2+msg%mass**2)**2
+     af(i)=(lkk**(2-p))*Ck(lkk)*jbessel(p,lkk*r)/(lkk**2+msg%mass**2)**2
 
      
   enddo
@@ -198,19 +216,20 @@ end function g_2prime_lambda
 !L_lambda
 !-----------------------------------
 
-real*8 function L_lambda(r)
+real*8 function L_lambda(p,r)
   use mpi_modules
   implicit none
   integer::i,ias
+  integer,intent(in)::p
   real*8,allocatable::af(:)
-  real*8::r,lkk,b5,bessel,Ck,h,Lk
+  real*8::r,lkk,b5,jbessel,Ck,h,Lk
   ias = 1
   allocate(af(msg%nla))
   h = 2.d0*msg%lambda/msg%nla
   do i=1,msg%nla
      af(i)=0
      lkk=h*real(i)
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)/(lkk**2+msg%mass**2)*Lk(lkk)/msg%mass**2
+     af(i)=(lkk**(2+p))*Ck(lkk)*jbessel(p,lkk*r)/(lkk**2+msg%mass**2)*Lk(lkk)/msg%mass**2
   enddo
   L_lambda=b5(1,msg%nla,0.d0,0.d0,h,0.d0,0.d0,msg%nla,af,ias)
   L_lambda=L_lambda*msg%lambda/(2.d0*acos(-1.d0)**2)
@@ -262,12 +281,13 @@ end function L_2prime_lambda
 !C lambda
 !------------------------------------
 
-real*8 function C_lambda(r)
+real*8 function C_lambda(p,r)
   use mpi_modules
   implicit none
   integer::i
+  integer,intent(in)::p
   real*8,allocatable::af(:)
-  real*8::r,lkk,bessel,b5,Ck,h
+  real*8::r,lkk,jbessel,b5,Ck,h
   integer::ias
   h=2.d0*msg%lambda/msg%nla
   allocate(af(msg%nla))
@@ -277,7 +297,7 @@ real*8 function C_lambda(r)
      af(i)=0
      lkk=real(i)*h
 
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)
+     af(i)=(lkk**(2+p))*Ck(lkk)*jbessel(p,lkk*r)
 
 
   enddo
@@ -338,19 +358,20 @@ end function C_2prime_lambda
 !------------------------------------
 
 
-real*8 function H_lambda(r)
+real*8 function H_lambda(p,r)
   use mpi_modules
   implicit none
   integer::i,ias
+  integer,intent(in)::p
   real*8,allocatable::af(:)
-  real*8::r,lkk,b5,bessel,Hk,h,Lk,Ck
+  real*8::r,lkk,b5,jbessel,Hk,h,Lk,Ck
   ias = 1
   allocate(af(msg%nla))
   h = 2.d0*msg%lambda/msg%nla
   do i=1,msg%nla
      af(i)=0
      lkk=h*real(i)
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)/(lkk**2+msg%mass**2)*Hk(lkk)/msg%mass**2
+     af(i)=(lkk**(2+p))*Ck(lkk)*jbessel(p,lkk*r)/(lkk**2+msg%mass**2)*Hk(lkk)/msg%mass**2
   enddo
   H_lambda=b5(1,msg%nla,0.d0,0.d0,h,0.d0,0.d0,msg%nla,af,ias)
   H_lambda=H_lambda*msg%lambda/(2.d0*acos(-1.d0)**2)
@@ -402,19 +423,20 @@ end function H_2prime_lambda
 !G lambda
 !------------------------------------
 
-real*8 function G1_lambda(r)
+real*8 function G1_lambda(p,r)
   use mpi_modules
   implicit none
   integer::i,ias
+  integer,intent(in)::p
   real*8,allocatable::af(:)
-  real*8::r,lkk,b5,bessel,Hk,h,Ck,sk
+  real*8::r,lkk,b5,jbessel,Hk,h,Ck,sk
   ias = 1
   allocate(af(msg%nla))
   h = 2.d0*msg%lambda/msg%nla
   do i=1,msg%nla
      af(i)=0
      lkk=h*real(i)
-     af(i)=(lkk**2)*Ck(lkk)*bessel(0,lkk*r)/(lkk**2+msg%mass**2)
+     af(i)=(lkk**(2+p))*Ck(lkk)*jbessel(p,lkk*r)/(lkk**2+msg%mass**2)
      af(i)=af(i)*(4*Hk(lkk)*(1/msg%mass**2+1/sk(lkk)**2)+1/sk(lkk)**2)
   enddo
   G1_lambda=b5(1,msg%nla,0.d0,0.d0,h,0.d0,0.d0,msg%nla,af,ias)

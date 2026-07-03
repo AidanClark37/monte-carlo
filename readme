@@ -1,0 +1,43 @@
+pre_deut_wave.f90
+
+calculate all parts of the wavefunction that can be done before the montecarlo, and so only needs done once, ex. setting up array in terms of spin and isospin combinations that does not depend on L
+
+deut_wave.f90
+
+calculate r- and L-dependant parts of the wavefunction, done inside montecarlo with r step, combine with array from pre_deut_wave.f90
+
+dipoles.f90
+
+contains subroutines for each operator, organized by LEC
+
+interpolate.f90
+
+defines interpolation subroutine, has option for linear and quadratic, and cubic splines
+
+operations.f90
+
+mostly unused, contains pauli subroutine, calculates, for a given particle number p array index i, and coordinate index a, the resulting array index i' that i would end up at when acted on by the pauli matrix of inded a in the space of particle p, as well as the constant that it would be multiplied by
+
+isospin_ops.f90
+
+calculates arrays of row values and constants from the pauli subroutine for all combinations of i, a, and p, for different combination of pauli matrices
+
+operator_calc.f90
+
+calculates all combinations of spin operators for a given wavefunction as calculated in deut wave, does every combination at each metropolis step once, to be called on by dipoles subroutines
+
+param_calc.f90
+
+calculates parameters fixed by values in input file, such as the number of spin combinations and isospin combinations, and the allowed isospin state indices, also defines physical constants
+
+radial_functions.f90
+
+contains subroutines to calculate structure functions
+
+structure_functions.f90
+
+at each metropolis step pre-calculates an array of values for each structure function for interpolation
+
+tau_operator
+
+contains subroutines to act isospin operator combinations on a provided wavefunction, calculated in deut_wave.f90
