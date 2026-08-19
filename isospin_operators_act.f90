@@ -1,8 +1,8 @@
-module tau_operator
+module iso_ops_act
 contains
 subroutine tau0(wf_in, p1,p2,wf_out)
   use mpi_modules
-  use isospin_operators
+  use iso_arr_store
   use param_calc
   implicit none
   complex*16,intent(in)::wf_in(:,:)
@@ -25,7 +25,7 @@ end subroutine tau0
 
 subroutine tau1(wf_in,p,wf_out)
   use mpi_modules
-  use isospin_operators
+  use iso_arr_store
   use param_calc
   implicit none
   complex*16,intent(in)::wf_in(:,:)
@@ -47,7 +47,7 @@ end subroutine tau1
 
 subroutine tau2(wf_in,p1,p2,wf_out)
   use mpi_modules
-  use isospin_operators
+  use iso_arr_store
   use param_calc
   implicit none
   complex*16,intent(in)::wf_in(:,:)
@@ -64,7 +64,7 @@ end subroutine tau2
 
 subroutine taux(wf_in,p1,p2,wf_out)
   use mpi_modules
-  use isospin_operators
+  use iso_arr_store
   use param_calc
   implicit none
   complex*16,intent(in)::wf_in(:,:)
@@ -82,4 +82,4 @@ subroutine taux(wf_in,p1,p2,wf_out)
   enddo
   return
 end subroutine taux
-end module tau_operator
+end module iso_ops_act

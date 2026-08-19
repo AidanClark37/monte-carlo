@@ -1,13 +1,14 @@
   program monte_carlo
-  use mpi_modules
+ use mpi_modules
   use pre_deut
-use operator_calc
+  use spin_ops_act_store
   use wigner
-  use isospin_operators
- use tau_operator
- use param_calc
+  use iso_ops_act
+  use iso_arr_store
+  use param_calc
  use struct_funcs
  use interpolation
+ use diff
   implicit none
 
 
@@ -22,7 +23,7 @@ use operator_calc
   integer::jz,n,iout
   integer::nq,si,sj,sp,sb,fi
   integer::accp,acc_move
-  real*8::r,rr(3,2),rcm(3),dr(3),q(3),func0,func2
+  real*8::r,rr(3,2),rcm(3),dr(3),q(3),func0,func2,funcx,funcy,funcz
   real*8::bessel,f0sum,f2sum,ftotal
   real*8,allocatable::obs(:),out(:)
   real*8,allocatable::obs_av(:)
@@ -40,6 +41,12 @@ use operator_calc
   real*8,allocatable::a(:)
 !call cpu_time(start)
   call pre_deut_wave()
+!  call parameter_calc(2,0)
+  ! call wave3()
+  open(unit=75,position="append",file="rvals.txt")
+  open(unit=76,position="append",file="wfvals.txt")
+  open(unit=77,position="append",file="dwfvals.txt")
+  !stop
   call start_mpi()
 
   if(proc_rank.eq.0)then
@@ -67,7 +74,7 @@ use operator_calc
      
 call parameter_calc(msg%npart,msg%Tz) !calculate constants - niso,nspin,
 call isospin_ops() ! call arrays for spin and isopin operations
-  call struct_func_calc(0.d0,10.d0/msg%hbarc) !calculate interpolation poins for structure funcitons
+  call struct_func_calc(0.d0,60.d0/msg%hbarc) !calculate interpolation poins for structure funcitons
 end if
   call mpi_broadcast_input()
   call general_setting()
@@ -76,7 +83,7 @@ end if
   !Initialize the wave function here
   allocate(rpart_o(3,msg%npart))
   jz= 1;!select the jz (typically jz=tot j
-  nq=10
+  nq=14
 
   !initialization of the observables vectors
   allocate(obs(nq)) !<-selcect nq based on what you need
@@ -114,6 +121,8 @@ end if
            
            call step(rnd,rpart_o,jz,cwf,norm,rr,dr,r,acc)
            
+           
+           
        ! write(*,*)ii,jj,acc,norm
         if(acc)acc_move=acc_move+1
      end do
@@ -131,8 +140,8 @@ end if
 
 
         
- 
- call all_operators(cwf)!precalculate spin operated wavefuncitons
+ !precalculate spin operated wavefuncitons 
+ call all_operators(cwf)
      
 
  
@@ -147,113 +156,106 @@ end if
               
               allocate(testcwf(4,2))
               testcwf2(:,:)=conjg(cwf)
-     write(*,*)"------------------------"
-     write(*,*)"base wavefunction"
-     write(*,*)"--------------------------"
-     do si = 1,4
-        write(*,*)cwf(si,1),cwf(si,2)
-     enddo
-     write(*,*)"-------------------"
-     !sigma 1 
-     do sp =1,3
-        exp=dcmplx(0.d0,0.d0)
-        testcwf(:,:)=(s_wf(:,:,1,sp))
-       write(*,*) "S1",sp
-       write(*,*)"-------------------"
-       do si  =1,4
-          write(*,*) testcwf(si,1),testcwf(si,2)
-          ! do sj=1,2
-         !    exp = exp+testcwf(si,sj)*testcwf2(si,sj)
-         !    enddo
-       enddo
-       call d0(cwf,sp,exp)
-       write(*,*)"--------------------"
-       write(*,*)"exp:",exp
-       write(*,*)"------------------"
-    enddo
-
-    !sigma 2
-    do sp =1,3
-	exp=dcmplx(0.d0,0.d0)
-        testcwf(:,:)=(s_wf(:,:,2,sp))
-       write(*,*) "S2",sp
-       write(*,*)"-------------------"
-       do si  =1,4
-          write(*,*) testcwf(si,1),testcwf(si,2)
-          do sj=1,2
-             exp = exp+testcwf(si,sj)*testcwf2(si,sj)
-             enddo
-       enddo
-       write(*,*)"--------------------"
-       write(*,*)"exp:",exp
-       write(*,*)"------------------"
-    enddo
+!     write(*,*)"------------------------"
+!     write(*,*)"base wavefunction"
+!     write(*,*)"--------------------------"
+!     do si = 1,4
+!        write(*,*)cwf(si,1),cwf(si,2)
+!     enddo
+!     write(*,*)"-------------------"
+!     !sigma 1 
+!     do sp =1,3
+!        exp=dcmplx(0.d0,0.d0)
+!        testcwf(:,:)=(s_wf(:,:,1,sp))
+!       write(*,*) "S1",sp
+!       write(*,*)"-------------------"
+!       do si  =1,4
+!          write(*,*) testcwf(si,1),testcwf(si,2)
+!          ! do sj=1,2
+!         !    exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+!         !    enddo
+!       enddo
+!       call d0(cwf,sp,exp)
+!       write(*,*)"--------------------"
+!       write(*,*)"exp:",exp
+!       write(*,*)"------------------"
+!    enddo
+!
+!    !sigma 2
+!    do sp =1,3
+!	exp=dcmplx(0.d0,0.d0)
+!        testcwf(:,:)=(s_wf(:,:,2,sp))
+!       write(*,*) "S2",sp
+!       write(*,*)"-------------------"
+!       do si  =1,4
+!          write(*,*) testcwf(si,1),testcwf(si,2)
+!          do sj=1,2
+!             exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+!             enddo
+!       enddo
+!       write(*,*)"--------------------"
+!       write(*,*)"exp:",exp
+!       write(*,*)"------------------"
+!    enddo
 
     
-    !S_+^i r^i
-     do sp =1,3
-	exp=0.d0
-       testcwf(:,:)=(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
-       write(*,*) "S_+r",sp
-       write(*,*)"-------------------"
-       do si  =1,4
-          write(*,*) testcwf(si,1),testcwf(si,2)
-          !do sj=1,2
-          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
-          !   enddo
-       enddo
-       call Srop(r,dr,sp,cwf,exp)
-       write(*,*)"--------------------"
-       write(*,*)"exp:",exp
-       write(*,*)"------------------"
-    enddo
-    !z S_+^i r^i
-    do sp =1,3
-        exp=dcmplx(0.d0,0.d0)
-       testcwf(:,:)=(dr(3)/msg%hbarc)*(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
-       write(*,*) "rS_+r",sp
-       write(*,*)"-------------------"
-       do si  =1,4
-          write(*,*) testcwf(si,1),testcwf(si,2)
-          !do sj=1,2
-          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
-          !   enddo
-       enddo
-       call rSrop(r,dr,sp,cwf,exp)
-       write(*,*)"--------------------"
-       write(*,*)"exp:",exp
-       write(*,*)"------------------"
-    enddo
-    !calculating analytic for d0 (S_+^z)
-    f0sum=0.d0
-              f2sum=0.d0
-              do si=1,40
-                 f0sum=f0sum + wfa(1,si)**2
-                 f2sum =f2sum + wfa(2,si)**2
-              enddo
-              func0=0.d0
-              func2=0.d0
-              ftotal = 0.5*(f0sum-0.5*f2sum)
-              call wave(func0)
-             ! write(*,*)"0",func0
+!    !S_+^i r^i
+!     do sp =1,3
+!	exp=0.d0
+!       testcwf(:,:)=(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
+!       write(*,*) "S_+r",sp
+!       write(*,*)"-------------------"
+!       do si  =1,4
+!          write(*,*) testcwf(si,1),testcwf(si,2)
+!          !do sj=1,2
+!          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+!          !   enddo
+!       enddo
+!       call Srop(r,dr,sp,cwf,exp)
+!       write(*,*)"--------------------"
+!       write(*,*)"exp:",exp
+!       write(*,*)"------------------"
+!    enddo
+!    !z S_+^i r^i
+!    do sp =1,3
+!        exp=dcmplx(0.d0,0.d0)
+!       testcwf(:,:)=(dr(3)/msg%hbarc)*(s_wf(:,:,1,sp)+s_wf(:,:,2,sp))*dr(sp)/r
+!       write(*,*) "rS_+r",sp
+!       write(*,*)"-------------------"
+!       do si  =1,4
+!          write(*,*) testcwf(si,1),testcwf(si,2)
+!          !do sj=1,2
+!          !   exp = exp+testcwf(si,sj)*testcwf2(si,sj)
+!          !   enddo
+!       enddo
+!       call rSrop(r,dr,sp,cwf,exp)
+!       write(*,*)"--------------------"
+!       write(*,*)"exp:",exp
+!       write(*,*)"------------------"
+              !    enddo
+              
+              !         endif
            endif
-        endif
-     endif
-
+        end if
+     end if
+     call different(rr,cwf,2,obs(14))
      !call g1V operator (~  z S_+ . rhat)
-     call g1V(r,dr,cwf,3,obs(1))
-     !call S_+^i for i=x,y,z
-     call d0(cwf,1,obs(2))
-     call d0(cwf,2,obs(3))
-     call d0(cwf,3,obs(4))
-     !call S_+^i r^i for i=x,y,z
-     call Srop(r,dr,1,cwf,obs(5))
-     call Srop(r,dr,2,cwf,obs(6))
-     call Srop(r,dr,3,cwf,obs(7))
+     call g1V(r,dr,cwf,3,obs(10))
+     call d1(cwf,3,obs(11))
+     call g1(r,dr,cwf,3,obs(12))
+     call g2(r,dr,cwf,3,obs(13))
+          !call S_+^i for i=x,y,z
+     call d0(cwf,1,obs(1))
+     call d0(cwf,2,obs(2))
+     call d0(cwf,3,obs(3))
+     !call S_+^i r^i fo i=x,y,z
+     call Srop(r,dr,1,cwf,obs(4))
+     call Srop(r,dr,2,cwf,obs(5))
+     call Srop(r,dr,3,cwf,obs(6))
      !call z S_+^i r^i for i=x,y,z
-     call rSrop(r,dr,1,cwf,obs(8))
-     call rSrop(r,dr,2,cwf,obs(9))
-     call rSrop(r,dr,3,cwf,obs(10))
+     call rSrop(r,dr,1,cwf,obs(7))
+     call rSrop(r,dr,2,cwf,obs(8))
+     call rSrop(r,dr,3,cwf,obs(9))
      obs=obs/norm
      obs_av=obs_av+obs
   end do
@@ -277,29 +279,36 @@ end if
 
   if(proc_rank.eq.0)then
      allocate(names(nq))
-     names(1) = "g1V"
-     names(2) = "s+x"
-     names(3) = "s+y"
-     names(4) = "s+z"
-     names(5) = "sx rx"
-     names(6) = "sy ry"
-     names(7) = "sz rz"
-     names(8) = "r sx rx"
-     names(9) = "r sy ry"
-     names(10)= "r sz rz"
+     names(10) = "g1V"
+     names(1) = "s+x"
+     names(2) = "s+y"
+     names(3) = "s+z"
+     names(4) = "sx rx"
+     names(5) = "sy ry"
+     names(6) = "sz rz"
+     names(7) = "r sx rx"
+     names(8) = "r sy ry"
+     names(9)= "r sz rz"
+     names(11)= "d1"
+     names(12)= "g1"
+     names(13)= "g2"
+     names(14)="derivative"
      write(*,*)"Acceptance = ",dfloat(accp)/dfloat(nwalk*nav*ncorr)
      write(*,*)"Final results"
      write(*,*)"----------------------------"
-     open(unit=21,position="append",file="g1v.txt")
-!     write(21,*)mean_obs(1)
+     open(unit=21,position="append",file="tempfile.txt")
+     write(21,*)sigma_obs(13)
      close(21)
      do iq=1,nq
         write(*,*)names(iq),mean_obs(iq),sigma_obs(iq)
         !write(*,*)fl1arr(1)
      end do
-     write(*,*)"expected for g1V",mean_obs(8)+mean_obs(9)+mean_obs(10)
+     write(*,*)"expected for zSr x,y",-(2/9.d0)*(func0+dsqrt(1.d0/5.d0)*funcx)
+     write(*,*)"expected for zSr z",-2.d0/9.d0*(func0-2.d0/dsqrt(5.d0)*funcx)
+     write(*,*)"expected for g1V,from operator",0.5*(mean_obs(8)+mean_obs(9)+mean_obs(10))
+     write(*,*)"expected for g1V from direct",2*(-(2/9.d0)*(func0+dsqrt(1.d0/5.d0)*funcx))+-2.d0/9.d0*(func0-2.d0/dsqrt(5.d0)*funcx)
      write(*,*) "expected result for 2:",-2*ftotal
-     write(*,*) "expected result for 1:",func0
+     write(*,*) "expected result for 1:",-(2.d0/3.d0)*func0
      !write(*,*)-func0,-func2,sqrt(2.d0)
   end if
 

@@ -1,7 +1,7 @@
-module spin_op
+module spin_ops_act
   implicit none
   contains
-subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
+subroutine  spin2(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
                  
   !p - particle number, 1,2, up to the number of particles N
   !b - coordinate index
@@ -9,7 +9,7 @@ subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
   !niso
   use mpi_modules
   use param_calc
-  use operations
+  use sim_ops
   implicit none
   integer,intent(in)::p,b
   integer::i,j
@@ -39,7 +39,7 @@ subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
         do i = 1,nspin
            do j=1,niso
               
-             sigma_wf(i,j)=-dcmplx(0,1)*state_sign(p,i)*wfin(flip(p,i),j)
+             sigma_wf(i,j)=-cmplx(0.d0,1.d0)*state_sign(p,i)*wfin(flip(p,i),j)
           enddo
        enddo
        !write(*,*)'end case 2'
@@ -54,5 +54,32 @@ subroutine  spin(wfin,p,b,sigma_wf)   !wf - matrix input, wavefunction
        write(*,*)'fail'   
     end select
     return
-  end subroutine spin
-end module spin_op
+  end subroutine spin2
+
+subroutine spin(wf_in,p,b,wf_out)
+use mpi_modules
+  use param_calc
+  use sim_ops
+  implicit none
+  integer,intent(in)::p,b
+  integer::i,j,iout
+  !integer,external::flip,state_sign
+  complex*16::cout
+  complex*16,intent(in)::wf_in(:,:)
+  complex*16,intent(out)::wf_out(:,:)
+  iout=0
+  cout=dcmplx(0.d0,0.d0)
+  !allocate(wf_out(nspin,niso))
+     !spin x
+     do i = 1,nspin
+        call pauli(p,b,i,iout,cout)
+        wf_out(i,:)=cout*wf_in(iout,:)
+        ! write(*,*)shape(sigma_wf)
+     enddo
+     
+ ! writE(*,*)nspin,niso
+  
+end subroutine spin
+
+end module spin_ops_act
+

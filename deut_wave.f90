@@ -15,6 +15,7 @@ subroutine deut_wave(rr,cwf,ysol,dr,r)
   complex*16::ysum(4,2,2),ylm
   complex*16,intent(inout)::cwf(:,:)
   ! r = r_1-r_2 vector, labelled dr
+  cwf=dcmplx(0.d0,0.d0)
   ! |r|, labeled r
   r=0.d0
   do ri = 1,3
@@ -62,7 +63,7 @@ subroutine deut_wave(rr,cwf,ysol,dr,r)
 return
 end subroutine deut_wave
 
-subroutine derivative(rr,ysol,h,dcwf)
+subroutine derivative_old(rr,ysol,h,dcwf)
   implicit none
   real*8,intent(in)::rr(3,2),ysol(2,40),h
   complex*16,intent(out)::dcwf(4,2,3,2)
@@ -87,5 +88,5 @@ subroutine derivative(rr,ysol,h,dcwf)
 
   
   return
-end subroutine derivative
+end subroutine derivative_old
 end module deuteron

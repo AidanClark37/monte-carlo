@@ -14,9 +14,10 @@
 !sstt_wf nspin, niso, coordinate index for sigma_1 and sigma_2, coordinate index for tau_1 and tau_2
 !calculates sigma_1^i sigma_2^j for all i,j<=3,only calculates tau_1^z * tau_2^z, tau_1^x * tau_2^y, tau_1^y * tau_2^x
 !----------------------------------------------------
-module operator_calc
+module spin_ops_act_store
   use mpi_modules
   use param_calc
+  use spin_ops_act
   implicit none
   complex*16,allocatable::s_wf(:,:,:,:),ss_wf(:,:,:,:,:,:)!,t_wf(4,2,2),tt_wf(4,2,3,3),st_wf(4,2,2,3,2),stt_wf(4,2,2,3,3,3)
 !  complex*16::sst_wf(4,2,3,3,2),sstt_wf(4,2,3,3,3,3)
@@ -24,6 +25,7 @@ contains
   subroutine all_operators(wf_in)
     use param_calc
     use mpi_modules
+    use spin_ops_act
     integer::p1,p2,a1,a2,a3
     complex*16,intent(in)::wf_in(:,:)
     complex*16,allocatable::wf1(:,:),wf2(:,:),wf3(:,:),wf4(:,:)
@@ -55,7 +57,7 @@ allocate(wf4(nspin,niso))
              
 return
   end subroutine all_operators
-  end module operator_calc
+end module spin_ops_act_store
 
 
 

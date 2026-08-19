@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
- ./mpi_modules.o param_calc.o /structure_functions.o ./interpolate.o wave_func.o ./isospin_ops.o ./tau_operator.o ./pre_deut_wave.o ./deut_wave.o ./metropolis.o ./operator_calc.o ./operations.o  ./main.o ./radial_functions.o ./dipoles.o 
+	./constant_parameters.o ./simple_operations.o ./mpi_modules.o parameter_calculation.o /structure_functions.o ./interpolate.o ./pre_deut_wave.o ./spin_operators_act.o wave_func.o ./deut_wave.o ./derivative.o ./metropolis.o ./spin_operators_act_store.o ./isospin_array_store.o ./isospin_operators_act.o ./radial_functions.o ./dipoles.o ./main.o
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -107,7 +107,7 @@ $(COMMAND_MAIN): $(OBJSMAIN) $(MAKEFILE)
 .f.o:	
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG)
 
-.f.mod:
+S.f.mod:
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG) 
 
 .c.o:

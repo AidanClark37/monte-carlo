@@ -2,16 +2,17 @@ module param_calc
 implicit none
   integer::nspin,niso
   integer,allocatable::iarray(:),inviarray(:)
-  real*8,parameter::gA=1.267,nmass=938,fpi=92.4
+!  real*8,parameter::gA=1.267,nmass=938,fpi=92.4
 contains
   
   subroutine parameter_calc(npart,Tz)
+    use sim_ops
     implicit none
     integer,intent(in)::npart,Tz
 
     
 
-    integer::i,p,j,state_sign,nu,count,itot 
+    integer::i,p,j,nu,count,itot 
     real*8::gamma
   nspin=2**npart
 

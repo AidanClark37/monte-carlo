@@ -79,9 +79,9 @@
   -1.3308472053132171E-005
    1.1833709777806235E-005
    500 #nwalk
-   700  #neq
-   30   #nav
-   200   #ncorr
+   50  #neq
+   200   #nav
+   70   #ncorr
    3.d0  #sigma
    1000                  #nla for b5 integration of structure functions
    2                     #npart

@@ -1,4 +1,4 @@
-module isospin_operators
+module iso_arr_store
   implicit none
   integer,allocatable::p0arr(:,:,:,:),p1arr(:,:)
   integer,allocatable::p2arr(:,:,:),pxarr(:,:,:)
@@ -10,7 +10,7 @@ contains
   subroutine isospin_ops()
     use mpi_modules
     use param_calc
-  
+    use sim_ops
   implicit none
 
   complex*16::intcarr(2)
@@ -66,4 +66,4 @@ contains
  ! write(*,*)"finishing i array calc"
   return
 end subroutine isospin_ops
-end module isospin_operators
+end module iso_arr_store

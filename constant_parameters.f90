@@ -1,4 +1,4 @@
-module constant_par
+module const_param
   implicit none
 
   !costants                                                                                                             
@@ -7,8 +7,9 @@ module constant_par
 
 
   real*8,parameter::hbarc  =197.32698d0
-  real*8,parameter::m      =138.03919333333d0 
-
+  real*8,parameter::nmass  =138.03919333333d0 
+  real*8,parameter::gA     =1.2723
+  real*8,parameter::fpi    =92.4
 
 
 
@@ -20,5 +21,5 @@ module constant_par
 
 
 
-end module constant_par
+end module const_param
 

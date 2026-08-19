@@ -3,10 +3,10 @@
 !-------------
 
 subroutine  g1V(r,dr,wf_in,index,exp)
-  use operator_calc
+  use spin_ops_act_store
   use mpi_modules
   use param_calc
-  use tau_operator
+  use iso_ops_act
   use struct_funcs
   use interpolation
   implicit none
@@ -66,7 +66,7 @@ end subroutine g1V
 !--------
 
 subroutine d0(wf_in,index,exp)
-  use operator_calc
+  use spin_ops_act_store
   use mpi_modules
   use param_calc
   implicit none
@@ -102,10 +102,10 @@ end subroutine d0
 !--------
 
 subroutine d1(wf_in,index,exp)
-  use operator_calc
+  use spin_ops_act_store
   use mpi_modules
   use param_calc
-  use tau_operator
+  use iso_ops_act
   implicit none
   complex*16,intent(in)::wf_in(4,2)
   integer,intent(in)::index
@@ -162,10 +162,11 @@ end subroutine d1
 !----------------------
 
 subroutine g0(r,dr,wf_in,dwf,index,exp)
-  use operator_calc
-  use tau_operator
+  use spin_ops_act_store
+  use iso_ops_act
   use mpi_modules
   use param_calc
+  use const_param
   implicit none
   complex*16,intent(in)::wf_in(:,:),dwf(:,:)
   integer,intent(in)::index
@@ -176,6 +177,9 @@ subroutine g0(r,dr,wf_in,dwf,index,exp)
   complex*16::owf(nspin,niso),ccwf(nspin,niso)
   integer::i,j
   real*8::cst,f_lambda
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !contribution for a1
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~
   swf_1(:,:)=s_wf(:,:,1,index)
   swf_2(:,:)=s_wf(:,:,2,index)
   cst=-gA*msg%lambda/(2*fpi*nmass)*f_lambda(0,r)
@@ -191,6 +195,11 @@ subroutine g0(r,dr,wf_in,dwf,index,exp)
         exp=exp+ccwf(i,j)*owf(i,j)
      enddo
   enddo
+
+  !~~~~~~~~~~~~~~~~~~~~~~~~
+  !contribution from b2
+  !~~~~~~~~~~~~~~~~~~~~~~~~
+  cst = -gA/(2*fpi**2*msg%lambda)
   return
 end subroutine g0
 
@@ -200,8 +209,9 @@ end subroutine g0
 
 subroutine g1(r,dr,wf_in,index,exp)
   use param_calc
-  use tau_operator
-  use operator_calc
+  use const_param
+  use iso_ops_act
+  use spin_ops_act_store
   use mpi_modules
   use interpolation
   use struct_funcs
@@ -263,8 +273,8 @@ end  subroutine g1
 subroutine g2(r,dr,wf_in,index,exp)
   use param_calc
   use mpi_modules
-  use tau_operator
-  use operator_calc
+  use iso_ops_act
+  use spin_ops_act_store
   use interpolation
   use struct_funcs
   implicit none
@@ -328,10 +338,10 @@ end subroutine Delta
 !S_+^i r^i
 !------------------------------
 subroutine  Srop(r,dr,index,wf_in,exp)
-  use operator_calc
+  use spin_ops_act_store
   use mpi_modules
   use param_calc
-  use tau_operator
+  use iso_ops_act
   use interpolation
   use struct_funcs
   implicit none
@@ -342,7 +352,7 @@ subroutine  Srop(r,dr,index,wf_in,exp)
   complex*16::spinwf(nspin,niso),ccwf(nspin,niso),wfout(nspin,niso)
   integer::i,p,j,si
   real*8::x,dx(3)
-  exp=0
+  exp=0.d0
   x=r/msg%hbarc
   dx(:)=dr(:)/msg%hbarc
   spinwf(:,:)=dcmplx(0.d0,0.d0)
@@ -367,10 +377,10 @@ end subroutine Srop
 !z S_+^i r^i
 !-------------------------------
 subroutine  rSrop(r,dr,index,wf_in,exp)
-  use operator_calc
+  use spin_ops_act_store
   use mpi_modules
   use param_calc
-  use tau_operator
+  use iso_ops_act
   use struct_funcs
   use interpolation
   implicit none
@@ -400,5 +410,40 @@ subroutine  rSrop(r,dr,index,wf_in,exp)
      enddo
   enddo
   return
-end subroutine rSrop
 
+
+end subroutine rSrop
+subroutine different(rr,wf_in,index,exp)
+
+use spin_ops_act_store
+  use mpi_modules
+  use param_calc
+  use iso_ops_act
+  use struct_funcs
+  use interpolation
+  use diff
+  implicit none
+  complex*16,intent(in)::wf_in(4,2)
+  integer,intent(in)::index
+  real*8,intent(in)::rr(3,2)
+  real*8,intent(out)::exp
+  complex*16::t1wf(nspin,niso),t2wf(nspin,niso),t3wf(nspin,niso),spinwf(nspin,niso),ccwf(nspin,niso),wfout(4,2)
+  integer::i,p,j,si
+  exp=0.d0
+  wfout(:,:)=dcmplx(0.d0,0.d0)
+  ccwf = conjg(wf_in)
+  call derivative(wf_in,rr,index,wfout)
+!  write(*,*)"in",wf_in
+!  write(*,*)"out",wfout
+  !  stop
+! do i = 1,4
+!    write(*,*)wfout(i,1),wfout(i,2)
+! enddo
+! stop
+  do i = 1,4
+     do j = 1,2
+        exp=exp+ccwf(i,j)*wfout(i,j)
+     enddo
+  enddo
+  return
+end subroutine different
