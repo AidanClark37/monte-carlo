@@ -78,13 +78,16 @@
    1.2245652090295746E-005
   -1.3308472053132171E-005
    1.1833709777806235E-005
-   1000 #nwalk
+   16000 #nwalk
    100  #neq
-   10   #nav
-   10   #ncorr
-   3.d0  #sigma
-   181     #nla
-   2      #iarray
-   3
-   138.03919333333d0     #m
-   600.d0               #lambda
+   40   #nav
+   200   #ncorr
+   3.5d0  #sigma
+   1000                  #nla for b5 integration of structure functions
+   2                     #npart
+   0                     #Tz
+   138.03919333333d0     #m pion mass
+   600.d0                #lambda cutoff
+   197.32698d0           #hbarc
+   500                  #npoint for interpolation of stucture functions
+

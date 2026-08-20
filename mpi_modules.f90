@@ -1,3 +1,4 @@
+
 module mpi_modules
   use mpi
   implicit none
@@ -11,10 +12,15 @@ module mpi_modules
      integer           ::ncorr
      real*8            ::sigma
      integer           ::nla
-     integer           ::iarray(2)
+!     integer           ::iarray(2)
      real*8            ::mass
      real*8            ::lambda
-
+     real*8            ::hbarc
+!     integer           ::niso
+     integer           ::npart
+     integer           ::Tz
+     integer           ::npoint
+!     integer           ::nspin
   end type input
 
   type(input)::msg
@@ -26,9 +32,16 @@ module mpi_modules
   integer           ::ncorr     !number of point to reduce correlation
   real*8            ::sigma     !length step of the move
   integer           ::nla
-  integer           ::iarray(2)
+ ! integer           ::iarray(2)
   real*8            ::lambda
   real*8            ::mass
+  real*8            ::hbarc
+ !    integer           ::niso
+     integer           ::npart
+     integer           ::Tz
+     integer           ::npoint
+ !    integer          ::nspin
+
 
   !general settings
   integer::nwalks_for_proc
@@ -42,9 +55,9 @@ module mpi_modules
 
   !mpi type 
   integer::num_blk
-  integer::v_len_blk(6)
-  integer::v_head(6)
-  integer::v_el_typ(6)
+  integer::v_len_blk(13)
+  integer::v_head(13)
+  integer::v_el_typ(13)
   integer::new_type
 
 contains
@@ -87,11 +100,13 @@ contains
     implicit none
     integer::i
     
-    num_blk=6
-    v_len_blk=[80,1,1,1,1,1]
-    v_head   =[0,640,644,648,652,656]
+    num_blk=13
+    v_len_blk=[80,1,1,1,1,1,1,1,1,1,1,1,1]
+    v_head   =[0,640,644,648,652,656,664,668,676,684,692,696,700]
     v_el_typ=[MPI_DOUBLE_PRECISION,MPI_INTEGER,MPI_INTEGER,&
-         MPI_INTEGER,MPI_INTEGER,MPI_DOUBLE_PRECISION]
+         MPI_INTEGER,MPI_INTEGER,MPI_DOUBLE_PRECISION,&
+         MPI_INTEGER,MPI_DOUBLE_PRECISION,MPI_DOUBLE_PRECISION,&
+         MPI_DOUBLE_PRECISION,MPI_INTEGER,MPI_INTEGER,MPI_INTEGER]
 
     call mpi_type_struct(num_blk,v_len_blk,v_head,v_el_typ,new_type,ierr)
 

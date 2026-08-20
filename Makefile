@@ -19,7 +19,7 @@ COMMAND_MAIN = main.x
 
 PATHMAIN=./
 _OBJSMAIN= \
-   ./mpi_modules.o  ./metropolis.o ./pre_deut_wave.o ./operator_calc.o ./deut_wave.o  ./operations.o  ./main.o ./operator_test.o ./radial_functions.o
+	./constant_parameters.o ./simple_operations.o ./mpi_modules.o parameter_calculation.o /structure_functions.o ./interpolate.o ./pre_deut_wave.o ./spin_operators_act.o wave_func.o ./deut_wave.o ./derivative.o ./metropolis.o ./spin_operators_act_store.o ./isospin_array_store.o ./isospin_operators_act.o ./radial_functions.o ./dipoles.o ./main.o
 OBJSMAIN = $(patsubst %,$(PATHMAIN)/%,$(_OBJSMAIN))
 
 # Every entry here matches one in SRCS, but with a ".o" ending 
@@ -74,7 +74,7 @@ ifeq ($(COMPILER),CRAY)
 endif	
 
 ifeq ($(DEBUG),TRUE)
-  FFLAGS= -O0 -traceback -warn all -g
+  FFLAGS= -O0 -g -fcheck=all -fbacktrace -fsanitize=address,undefined
 endif
 
 ifeq ($(DEBUG),FALSE)
@@ -107,7 +107,7 @@ $(COMMAND_MAIN): $(OBJSMAIN) $(MAKEFILE)
 .f.o:	
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG)
 
-.f.mod:
+S.f.mod:
 	$(F90) -c $(FFLAGS) $(OMP_FLAG) -o $@ $< $(LIBANG) 
 
 .c.o:
