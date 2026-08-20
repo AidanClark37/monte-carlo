@@ -14,8 +14,8 @@ module diff
   complex*16,intent(inout)::wf_out(4,2)
   complex*16,allocatable::wf1(:,:)
   allocate(wf1(nspin,niso))
-  write(*,*)"spin",nspin,niso
-  h=0.000d0
+!  write(*,*)"spin",nspin,niso
+  h=0.00001d0
   rr1(:,:)=rr(:,:)
     rr1(i,2)=rr(i,2)+h
  !   write(*,*)"rr",rr(i,:)
@@ -26,13 +26,13 @@ module diff
 
   wf_out(:,:) = (wf1(:,:)-wf_in(:,:))/h
  
- do n = 1,4
-    write(*,*)"in",wf_in(n,1),wf_in(n,2)
-    enddo
- do n = 1,4
-    write(*,*)"shift",wf1(n,1),wf1(n,2)
- enddo
- stop
+! do n = 1,4
+!    write(*,*)"in",wf_in(n,1),wf_in(n,2)
+!    enddo
+! do n = 1,4
+!    write(*,*)"shift",wf_out(n,1),wf_out(n,2)
+! enddo
+! stop
     return
 end subroutine derivative
 end module diff

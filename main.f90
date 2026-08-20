@@ -235,6 +235,15 @@ end if
               !    enddo
               
               !         endif
+              f0sum = 0.d0
+              f2sum=0.d0
+              do si = 1,40
+                 f0sum = f0sum + wfa(1,si)**2
+                 f2sum = f2sum + wfa(2,si)**2
+              enddo
+              ftotal = f0sum - 0.5d0*f2sum
+              call wave(func0)
+              call wave2(funcx)
            endif
         end if
      end if
